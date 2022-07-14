@@ -1,0 +1,48 @@
+\chapter{Wstęp}
+\section{Wprowadzenie}
+Niniejszy dokument powstał z myślą o ujednoliceniu sposobu redagowania prac dyplomowych. Jego źródła mają pełnić rolę szablonu nowoedytowanej pracy, zaś prezentowana treść posłużyć ma jako zbiór zaleceń i uwag o charakterze technicznym (dotyczących takich zagadnień, jak na przykład: formatowanie tekstu, załączanie rysunków, układ strony) oraz stylistycznym (odnoszących się do stylu wypowiedzi, sposobów tworzenia referencji itp.).
+
+W źródłach szablonu zamieszczono komentarze z uwagami pozwalającymi lepiej zrozumieć znaczenie używanych komend. Komentarze te nie są widoczne w pliku \texttt{Dokument.pdf}, powstającym w wyniku kompilacji szablonu. Aby zrozumieć, jak dobrze wykorzystać szablon, należy sięgnąć do tych komentarzy.
+
+Szablon przygotowano do kompilacji narzędziem \texttt{pdflatex} w konfiguracji: \texttt{MiKTeX} (windowsowa dystrybucja latexa) + \texttt{TeXnicCenter} (środowisko do edycji i kompilacji projektów latexowych) + \texttt{SumatraPDF} (przeglądarka pdfów z nawigacją zwrotną) + JabRef (opcjonalny edytor bazy danych bibliograficznych). Wymieniony zestaw narzędzi jest zalecany do pracy w systemie Windows. Narzędzia te można pobrać ze stron internetowych, których adresy zamieszczono w tabeli~\ref{tab:narzedzia}.
+
+\begin{table}[htb] \small
+\centering
+\caption{Wykaz zalecanych narzędzi do pracy z wykorzystaniem szablonu (na dzień 09.02.2021)}
+\label{tab:narzedzia}
+\begin{tabularx}{\linewidth}{|c|c|X|p{5.5cm}|} \hline\
+Narzędzie & Wersja & Opis & Adres \\ \hline\hline
+\texttt{MiKTeX} & 21.1 & Zalecana jest instalacja \texttt{Basic MiKTeX} 32 lub 64 bitowa. Brakujące pakiety będą się doinstalowywać podczas kompilacji projektu &
+\url{http://miktex.org/download} \\ \hline
+\texttt{TeXnicCenter} & 2.02 &  Można pobrać 32 lub 64 bitową wersję & \url{http://www.texniccenter.org/download/} \\ \hline
+\texttt{SumatraPDF} & 3.2 & Można pobrać 32 lub 64 bitową wersję & \url{http://www.sumatrapdfreader.org/download-free-pdf-viewer.html} \\ \hline
+\texttt{JabRef} & 5.2 & Rozwijane w JDK 15, ma własny instalator i wersję przenośną & \url{http://www.fosshub.com/JabRef.html} \\ \hline
+\end{tabularx}
+\end{table}
+
+Wspomniana nawigacja między \texttt{TeXnicCenter} a \texttt{SumatraPDF} polega na przełączani się pomiędzy tymi środowiskami z zachowaniem kontekstu. Czyli edytując tekst w \texttt{TeXnicCenter} po kliku na narzędziu podglądu można przeskoczyć do odpowiedniego miejsca w pdfie wyświetlanym przez \texttt{SumatraPDF}, podwójne kliknięcie w pdfie widocznym w \texttt{SumatraPDF} ustawi kursor we właściwym akapicie w edytorze tekstu \texttt{TeXnicCenter}. O konfiguracji obu narzędzi do takiej współpracy napisano na stronie \url{http://tex.stackexchange.com/questions/116981/how-to-configure-texniccenter-2-0-with-sumatra-2013-2014-2015-version} (w sieci można znaleźć również inne materiały na ten temat).
+
+Szablon można łatwo dostosować do innych narzędzi i środowisk (jak np.\ do multiplatformowego \texttt{TexStudio} oraz różnych dystrybucji systemu LaTeX). Dostosowanie to może polegać na zmianie kodowania plików, pominięciu pliku projektu \texttt{Dyplom.tcp} (patrz następny rozdział) i korekcie deklaracji kodowania znaków w dokumencie głównym (co opisano dalej).
+
+Można go też zaadoptować do potrzeb pracy z wykorzystaniem latexowych edytorów i kompilatorów działających w trybie on-line. Takim narzędziem jest Overleaf (\url{https://www.overleaf.com/}). Choć ma niewątpliwie wiele zalet (w tym możliwość edycji przez wielu użytkowników jednocześnie), to podczas edycji długich dokumentów narzędzie to przegrywa ze wspomnianymi zintegrowanymi środowiskami TeXnicCenter czy TexStudio. Overleaf nie wyświetla struktury dokumentu (a jedynie listę plików), nie umożliwia wyszukiwania we wszystkich plikach projektowych (nie ma opcji  \texttt{Find in Files ...}, która bardzo się przydaje do wyszukiwania wystąpień pewnych sentencji czy komend). Ponadto choć istnieje możliwość włączenia wersjonowania w Overleaf (w powiązaniu z jakimś gitowym repozytorium), to wersjonowanie to nie działa perfekcyjnie.
+
+Dlatego \textbf{zaleca się korzystanie ze środowisk zintegrowanych zainstalowanych lokalnie, czemu towarzyszyć ma wersjonowanie z pomocą wybranego zdalnego repozytorium (gitlab, github, bitbucket)}.
+
+
+%%%- JabRef - narzędzie do przygotowywania bibliografii.
+%%%
+%%%
+%%%Uwaga: tytuł powinien zmieścić się w okienku kolorowej okładki (którą
+%%%powinna dostarczyć uczelniana administracja). Proszę posterować
+%%%parametrami, aby "wpasować" w okienko własny tekst.
+%%%
+%%%Do ASAPa należy wprowadzić pracę dyplomową/projekt inżynierski w pliku o nazwie:
+%%%
+%%%W04_[nr albumu]_[rok kalendarzowy]_[rodzaj pracy] (szczegółowa instrukcja pod adresem asap.pwr.edu.pl)
+%%%
+           %%%Przykładowo:
+        %%%­W04_123456_2015_praca inżynierska.pdf     - praca dyplomowa inżynierska
+        %%%W04_123456_2015_projekt inżynierski.pdf   - projekt inżynierski
+        %%%W04_123456_2015_praca magisterska.pdf  - praca dyplomowa magisterska
+%%%
+              %%%rok kalendarzowy ? rok realizacji kursu „Praca dyplomowa” (nie rok obrony) 
