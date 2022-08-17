@@ -785,12 +785,12 @@ Specjalność: & {\bfseries \@specjalnosc}\\
 \title{Szablon pracy dyplomowej inżynierskiej/magisterskiej, wersja 0.7}
 \titleShort{Szablon pracy dyplomowej ...}
 \titleEN{Engineering/master thesis template, version 0.7}
-\author{Imię Nazwisko}
+\author{Marcel Guzik}
 \uczelnia{Politechnika Wrocławska}
 \wydzial{Wydział Informatyki i Telekomunikacji}
 \kierunek{Informatyka techniczna}
-\specjalnosc{Inżynieria systemów informatycznych}
-\promotor{tytuł/stopień naukowy, Imię Nazwisko}
+\specjalnosc{Grafika i Systemy Multimedialne}
+\promotor{dr inż. Marek Woda}
 \date{WROCŁAW, 2021}
 
 % Ustawienie odstępu od góry w nienumerowanych rozdziałach oraz wykazach:
@@ -840,9 +840,9 @@ Specjalność: & {\bfseries \@specjalnosc}\\
 \end{tabular}\\[15mm]
 \noindent\includegraphics[width=3cm]{by-nc-sa}\newline
 {\normalfont
-	Tekst zawarty w niniejszym szablonie jest udostępniany na licencji Creative Commons: \emph{Uznanie autorstwa -- Użycie niekomercyjne -- Na tych samych warunkach, 3.0 Polska}, Wrocław 2021. \\[2pt]
-	Oznacza to, że wszystkie przekazane treści można kopiować i  wykorzystywać do celów niekomercyjnych, a także tworzyć na ich podstawie utwory zależne pod warunkiem podania autora i~nazwy licencjodawcy oraz udzielania na utwory zależne takiej samej licencji. Tekst licencji jest dostępny pod adresem: \url{http://creativecommons.org/licenses/by-nc-sa/3.0/pl/}.\\[2pt]
-	Podczas redakcji pracy dyplomowej stronę tę można usunąć. Licencja dotyczy bowiem zredagowanego opisu, a nie samego latexowego szablonu. Latexowy szablon można wykorzystywać bez wzmiankowania o jego autorze.
+    Tekst zawarty w niniejszym szablonie jest udostępniany na licencji Creative Commons: \emph{Uznanie autorstwa -- Użycie niekomercyjne -- Na tych samych warunkach, 3.0 Polska}, Wrocław 2021. \\[2pt]
+    Oznacza to, że wszystkie przekazane treści można kopiować i  wykorzystywać do celów niekomercyjnych, a także tworzyć na ich podstawie utwory zależne pod warunkiem podania autora i~nazwy licencjodawcy oraz udzielania na utwory zależne takiej samej licencji. Tekst licencji jest dostępny pod adresem: \url{http://creativecommons.org/licenses/by-nc-sa/3.0/pl/}.\\[2pt]
+    Podczas redakcji pracy dyplomowej stronę tę można usunąć. Licencja dotyczy bowiem zredagowanego opisu, a nie samego latexowego szablonu. Latexowy szablon można wykorzystywać bez wzmiankowania o jego autorze.
 }
 \clearpage
 %\chapterstyle{noNumbered}
@@ -876,22 +876,55 @@ Specjalność: & {\bfseries \@specjalnosc}\\
 
 %\mainmatter
 \chapterstyle{default}
-\include{rozdzial01}
-\include{rozdzial02}
-\include{rozdzial03}
-\include{rozdzial04}
-\include{rozdzial05}
-\include{rozdzial06}
+
+\chapter{Strumieniowanie wideo}
+\section{Koncepty strumieniowania}
+\section{Metody strumieniowania}
+\subsection{RTSP}
+\subsection{MPEG-DASH}
+\subsection{WebRTC}
+
+\chapter{Mechanizmy kompresji wideo}
+\section{Koncepty kompresji}
+\section{Kontenery}
+\section{Kodeki}
+\subsection{H.264}
+\subsection{H.265}
+\subsection{VP9}
+\subsection{AV1}
+
+\chapter{WebRTC}
+\section{Przegląd}
+\section{Ustanawianie sesji}
+\section{Mechanizmy STUN}
+\section{Mechanizmy wymiany danych}
+
+\chapter{Architektura projektu Piperchat}
+\section{Serwer}
+\section{Klient}
+
+\chapter{Aplikacja webowa z użyciem WebRTC}
+
+\chapter{Aplikacja desktopowa w języku Rust}
+\section{GUI framework}
+\section{ffmpeg}
+
+% \include{rozdzial01}
+% \include{rozdzial02}
+% \include{rozdzial03}
+% \include{rozdzial04}
+% \include{rozdzial05}
+% \include{rozdzial06}
 
 %\bibliographystyle{plalpha}
-\bibliographystyle{plabbrv}
+% \bibliographystyle{plabbrv}
 
 %UWAGA: bibliotekę referencji należy przygotować samemu. Dobrym do tego narzędziem jest JabRef.
 %       Nazwę przygotowanej biblioteki wpisuje się poniżej bez rozszerzenia
 %       (w tym przypadku jest to "dokumentacja.bib")
 \setlength{\bibitemsep}{2pt} % - by zacieśnić wykaz literatury
 %\addtocontents{toc}{\addvspace{5pt}} % ustawiamy odstęp przed literaturą w spisie treści
-\bibliography{dokumentacja}
+% \bibliography{dokumentacja}
 \appendix
 \include{dodatekA}
 \include{dodatekB}
