@@ -1,48 +1,42 @@
 \chapter{Wstęp}
 \section{Wprowadzenie}
-Niniejszy dokument powstał z myślą o ujednoliceniu sposobu redagowania prac dyplomowych. Jego źródła mają pełnić rolę szablonu nowoedytowanej pracy, zaś prezentowana treść posłużyć ma jako zbiór zaleceń i uwag o charakterze technicznym (dotyczących takich zagadnień, jak na przykład: formatowanie tekstu, załączanie rysunków, układ strony) oraz stylistycznym (odnoszących się do stylu wypowiedzi, sposobów tworzenia referencji itp.).
 
-W źródłach szablonu zamieszczono komentarze z uwagami pozwalającymi lepiej zrozumieć znaczenie używanych komend. Komentarze te nie są widoczne w pliku \texttt{Dokument.pdf}, powstającym w wyniku kompilacji szablonu. Aby zrozumieć, jak dobrze wykorzystać szablon, należy sięgnąć do tych komentarzy.
+Pandemia COVID-19 oraz zdobywające coraz większą popularność zdalne formy zatrudnienia obrazują jak ważna jest rola
+połączeń wideo we współczesnym społeczeństwie. W wielu przypadkach kontakt "twarzą w twarz" jest preferowalny, a nawet
+niezbędny do realizacji pewnych zadań. W takich wypadkach niezawodność oraz efektywność transmisji wideo stają się
+bardzo ważnymi problemami.
 
-Szablon przygotowano do kompilacji narzędziem \texttt{pdflatex} w konfiguracji: \texttt{MiKTeX} (windowsowa dystrybucja latexa) + \texttt{TeXnicCenter} (środowisko do edycji i kompilacji projektów latexowych) + \texttt{SumatraPDF} (przeglądarka pdfów z nawigacją zwrotną) + JabRef (opcjonalny edytor bazy danych bibliograficznych). Wymieniony zestaw narzędzi jest zalecany do pracy w systemie Windows. Narzędzia te można pobrać ze stron internetowych, których adresy zamieszczono w tabeli~\ref{tab:narzedzia}.
+Celem niniejszej pracy jest analiza połączeń wideo czasu rzeczywistego w każdym ich etapie, badanie procesów
+składających się na nie, i wreszcie utworzenie internetowego komunikatora wideo wykorzystującego poznane koncepty i
+rozwiązania.
 
-\begin{table}[htb] \small
-\centering
-\caption{Wykaz zalecanych narzędzi do pracy z wykorzystaniem szablonu (na dzień 09.02.2021)}
-\label{tab:narzedzia}
-\begin{tabularx}{\linewidth}{|c|c|X|p{5.5cm}|} \hline\
-Narzędzie & Wersja & Opis & Adres \\ \hline\hline
-\texttt{MiKTeX} & 21.1 & Zalecana jest instalacja \texttt{Basic MiKTeX} 32 lub 64 bitowa. Brakujące pakiety będą się doinstalowywać podczas kompilacji projektu &
-\url{http://miktex.org/download} \\ \hline
-\texttt{TeXnicCenter} & 2.02 &  Można pobrać 32 lub 64 bitową wersję & \url{http://www.texniccenter.org/download/} \\ \hline
-\texttt{SumatraPDF} & 3.2 & Można pobrać 32 lub 64 bitową wersję & \url{http://www.sumatrapdfreader.org/download-free-pdf-viewer.html} \\ \hline
-\texttt{JabRef} & 5.2 & Rozwijane w JDK 15, ma własny instalator i wersję przenośną & \url{http://www.fosshub.com/JabRef.html} \\ \hline
-\end{tabularx}
-\end{table}
+W rozdziale 2 omówione zostaną koncepty i metody związane ze strumieniowaniem wideo. Przedstawiony zostanie uproszczony
+opis procesu transmisji wideo w czasie rzeczywistym, od pobrania klatki obrazu przez kamerę internetową, do wyświetlenia
+tejże klatki na monitorze rozmówcy. Poruszone zostaną problemy związane z transmisją wideo przez sieć internetową, np.
+problem ustanowienia kanału P2P pomiędzy klientami za siecią NAT, negocjowanie sesji pomiędzy klientami, adaptive
+bitrate, etc.
 
-Wspomniana nawigacja między \texttt{TeXnicCenter} a \texttt{SumatraPDF} polega na przełączani się pomiędzy tymi środowiskami z zachowaniem kontekstu. Czyli edytując tekst w \texttt{TeXnicCenter} po kliku na narzędziu podglądu można przeskoczyć do odpowiedniego miejsca w pdfie wyświetlanym przez \texttt{SumatraPDF}, podwójne kliknięcie w pdfie widocznym w \texttt{SumatraPDF} ustawi kursor we właściwym akapicie w edytorze tekstu \texttt{TeXnicCenter}. O konfiguracji obu narzędzi do takiej współpracy napisano na stronie \url{http://tex.stackexchange.com/questions/116981/how-to-configure-texniccenter-2-0-with-sumatra-2013-2014-2015-version} (w sieci można znaleźć również inne materiały na ten temat).
+W rozdziale 3 omówiony zostanie projekt WebRTC i jego protokoły składowe, czytelnik dowie się również w jaki sposób
+WebRTC rozwiązuje problemy poruszone we wcześniejszym rozdziale i tym samym niezwykle upraszcza tworzenie
+multimedialnych aplikacji webowych.
 
-Szablon można łatwo dostosować do innych narzędzi i środowisk (jak np.\ do multiplatformowego \texttt{TexStudio} oraz różnych dystrybucji systemu LaTeX). Dostosowanie to może polegać na zmianie kodowania plików, pominięciu pliku projektu \texttt{Dyplom.tcp} (patrz następny rozdział) i korekcie deklaracji kodowania znaków w dokumencie głównym (co opisano dalej).
+W rozdziale 4 zaprezentowana zostanie aplikacja webowa wykorzystująca WebRTC, nastąpi ogólny przegląd wykorzystywanych
+technologii oraz oprogramowania, zaprezentowane zostaną fragmenty kodu źródłowego realizujące kluczowe procesy
+nawiązywania połączenia poruszone we wcześniejszym rozdziale. Wykonana zostanie dokładna analiza ruchu sieciowego
+pomiędzy hostami i uzupełniony zostanie proces nawiązywania połączenia WebRTC poruszony we wcześniejszym rozdziale,
+zobrazowany konkretnym przykładem.
 
-Można go też zaadoptować do potrzeb pracy z wykorzystaniem latexowych edytorów i kompilatorów działających w trybie on-line. Takim narzędziem jest Overleaf (\url{https://www.overleaf.com/}). Choć ma niewątpliwie wiele zalet (w tym możliwość edycji przez wielu użytkowników jednocześnie), to podczas edycji długich dokumentów narzędzie to przegrywa ze wspomnianymi zintegrowanymi środowiskami TeXnicCenter czy TexStudio. Overleaf nie wyświetla struktury dokumentu (a jedynie listę plików), nie umożliwia wyszukiwania we wszystkich plikach projektowych (nie ma opcji  \texttt{Find in Files ...}, która bardzo się przydaje do wyszukiwania wystąpień pewnych sentencji czy komend). Ponadto choć istnieje możliwość włączenia wersjonowania w Overleaf (w powiązaniu z jakimś gitowym repozytorium), to wersjonowanie to nie działa perfekcyjnie.
+W rozdziale 5 omówione zostaną problemy, generalne mechanizmy i koncepty związane z kompresją wideo, kontenery,
+strumienie oraz ich muxowanie do kontenerów, rodzaje kodeków wideo, proces enkodowania/dekodowania, sprzętowe oraz
+programowe implementacje koderów.
 
-Dlatego \textbf{zaleca się korzystanie ze środowisk zintegrowanych zainstalowanych lokalnie, czemu towarzyszyć ma wersjonowanie z pomocą wybranego zdalnego repozytorium (gitlab, github, bitbucket)}.
+W rozdziale 6 poruszone zostaną problemy i rozwiązania związane ze strumieniowaniem AV1. Zrealizowane zostanie "zejście
+na niższy poziom", co pozwoli na głębsze zapoznanie się z krokami realizowanymi celem przygotowania strumienia wideo do
+transmisji oraz wyświetlenia przychodzącego wideo na ekranie monitora. Zrealizowane zostanie min.: zastąpienie całości
+lub części stosu WebRTC rozwiązaniami natywnymi, oferowanymi przez sprzęt lub system operacyjny, wyeliminowanie
+abstrakcji oferowanych przez przeglądarkę, wybór optymalnego kodera oraz jego parametrów, wybór technologii GUI,
+zaplanowanie i omówienie procesu strumieniowania z rozdziału 1szego, wraz z elementami które będą go realizowały.
 
-
-%%%- JabRef - narzędzie do przygotowywania bibliografii.
-%%%
-%%%
-%%%Uwaga: tytuł powinien zmieścić się w okienku kolorowej okładki (którą
-%%%powinna dostarczyć uczelniana administracja). Proszę posterować
-%%%parametrami, aby "wpasować" w okienko własny tekst.
-%%%
-%%%Do ASAPa należy wprowadzić pracę dyplomową/projekt inżynierski w pliku o nazwie:
-%%%
-%%%W04_[nr albumu]_[rok kalendarzowy]_[rodzaj pracy] (szczegółowa instrukcja pod adresem asap.pwr.edu.pl)
-%%%
-           %%%Przykładowo:
-        %%%­W04_123456_2015_praca inżynierska.pdf     - praca dyplomowa inżynierska
-        %%%W04_123456_2015_projekt inżynierski.pdf   - projekt inżynierski
-        %%%W04_123456_2015_praca magisterska.pdf  - praca dyplomowa magisterska
-%%%
-              %%%rok kalendarzowy ? rok realizacji kursu „Praca dyplomowa” (nie rok obrony) 
+W rozdziale 7 zaprezentowana zostanie wykonana aplikacja desktopowa wykorzystująca biblioteki oraz inne rozwiązania
+udostępniane przez system operacyjny. Omówienie architektury, wykorzystywanych technologii i fragmentów kodu aplikacji
+okienkowej. Zaprezentowanie wybranych etapów procesu strumieniowania realizowanych przez aplikację.
