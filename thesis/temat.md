@@ -97,22 +97,19 @@ FaaS/SaaS, np. Firebase.
 
 # Literatura
 
--   McAnlis, C., & Haecky, A. (2016). Understanding compression: Data compression
-    for modern developers. " O'Reilly Media, Inc.".
--   Richardson, I. E. (2011). The H. 264 advanced video compression standard.
-    John Wiley & Sons.
--   Akyazi, P., & Ebrahimi, T. (2018, May). Comparison of compression efficiency
-    between HEVC/H. 265, VP9 and AV1 based on subjective quality assessments. In
-    2018 Tenth International Conference on Quality of Multimedia Experience
+-   Grigorik, Ilya. "WebRTC." High Performance Browser Networking: What every web developer should know about networking
+    and web performance. " O'Reilly Media, Inc.", 2013.
+-   McAnlis, C., & Haecky, A. (2016). Understanding compression: Data compression for modern developers. " O'Reilly
+    Media, Inc.".
+-   Richardson, I. E. (2011). The H. 264 advanced video compression standard. John Wiley & Sons.
+-   Akyazi, P., & Ebrahimi, T. (2018, May). Comparison of compression efficiency between HEVC/H. 265, VP9 and AV1 based
+    on subjective quality assessments. In 2018 Tenth International Conference on Quality of Multimedia Experience
     (QoMEX) (pp. 1-6). IEEE.
--   Chen, Y., Murherjee, D., Han, J., Grange, A., Xu, Y., Liu, Z., ... & De
-    Rivaz, P. (2018, June). An overview of core coding tools in the AV1 video
-    codec. In 2018 picture coding symposium (PCS) (pp. 41-45). IEEE.
--   Adzic, V., Kalva, H., & Furht, B. (2012). Optimizing video encoding for
-    adaptive streaming over HTTP. IEEE Transactions on Consumer Electronics,
-    58(2), 397-403.
--   Roux, L., & Gouaillard, A. (2020, October). Performance of AV1 Real-Time
-    Mode. In 2020 Principles, Systems and Applications of IP Telecommunications
-    (IPTComm) (pp. 1-8). IEEE.
--   Zhang, T., & Mao, S. (2019). An overview of emerging video coding standards.
-    GetMobile: Mobile Computing and Communications, 22(4), 13-20.
+-   Chen, Y., Murherjee, D., Han, J., Grange, A., Xu, Y., Liu, Z., ... & De Rivaz, P. (2018, June). An overview of core
+    coding tools in the AV1 video codec. In 2018 picture coding symposium (PCS) (pp. 41-45). IEEE.
+-   Adzic, V., Kalva, H., & Furht, B. (2012). Optimizing video encoding for adaptive streaming over HTTP. IEEE
+    Transactions on Consumer Electronics, 58(2), 397-403.
+-   Roux, L., & Gouaillard, A. (2020, October). Performance of AV1 Real-Time Mode. In 2020 Principles, Systems and
+    Applications of IP Telecommunications (IPTComm) (pp. 1-8). IEEE.
+-   Zhang, T., & Mao, S. (2019). An overview of emerging video coding standards. GetMobile: Mobile Computing and
+    Communications, 22(4), 13-20.
