@@ -30,9 +30,9 @@
 %   \renewcommand{\normalsize}{\fontsize{8pt}{10pt}\selectfont}
 
 \usepackage[utf8]{inputenc} % Proszę zostawić, jeśli kodowanie edytowanych plików to cp1250
-%\usepackage[utf8]{inputenc} % Proszę użyć zamiast powyższego, jeśli kodowanie edytowanych plików to UTF8
 \usepackage[T1]{fontenc}
-\usepackage[english,polish]{babel} % Tutaj ważna jest kolejność atrybutów (dla pracy po polsku polish powinno być na końcu)
+\usepackage[english,polish]{babel} % Tutaj ważna jest kolejność atrybutów (dla pracy po polsku polish powinno być na
+% końcu)
 %\DisemulatePackage{setspace}
 \usepackage{setspace}
 \usepackage{color,calc}
@@ -57,6 +57,11 @@
 \renewcommand*\ttdefault{txtt}
 
 
+\usepackage[
+backend=biber,
+style=ieee
+]{biblatex}
+\addbibresource{dokumentacja.bib}
 
 \usepackage{multicol} % pakiet umożliwiający stworzenie wielokolumnowego tekstu
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -89,6 +94,7 @@
 % Jeśli w opisie nie ma takich odwołań, numerowanie linii jest zbędne. Proszę wtedy go nie stosować.
 % Przy włączaniu numerowania linii należy zwrócić uwagę na to, gdzie pojawią się te numery.
 % Bez zmiany dodatkowych parametrów pojawiają się one na marginesie strony (co jest nieporządane).
+
 
 \lstset{
   basicstyle=\small\ttfamily, % lub basicstyle=\footnotesize\ttfamily
@@ -539,7 +545,10 @@ Listing \thelstlisting: #1\hfill%\hfill%
 
 \def\UrlBreaks{\do\/\do-\do_} % dodane by lepiej łamać urle
 
-%\graphicspath{{rys01/}{rys02/}}  % choć można zadeklarować foldery, w jakich pojawiać się mają pliki z grafiką, zaleca się jednak, by tego nie robić
+%\graphicspath{{rys01/}{rys02/}}  % choć można zadeklarować foldery, w jakich pojawiać się mają pliki z grafiką, zaleca
+%się jednak, by tego nie robić
+
+\usepackage{svg}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -782,9 +791,8 @@ Specjalność: & {\bfseries \@specjalnosc}\\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  Metadane dokumentu
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\title{Szablon pracy dyplomowej inżynierskiej/magisterskiej, wersja 0.7}
-\titleShort{Szablon pracy dyplomowej ...}
-\titleEN{Engineering/master thesis template, version 0.7}
+\title{Wideokomunikator internetowy implementujący nowoczesne kodeki wideo w języku Rust}
+\titleEN{Internet videochat application implementing modern video codecs using Rust programming language}
 \author{Marcel Guzik}
 \uczelnia{Politechnika Wrocławska}
 \wydzial{Wydział Informatyki i Telekomunikacji}
@@ -877,21 +885,9 @@ Specjalność: & {\bfseries \@specjalnosc}\\
 %\mainmatter
 \chapterstyle{default}
 
-\include{streszczenie}
-
 \include{rozdzial01}
-\chapter{Strumieniowanie wideo}
-\section{Koncepty strumieniowania}
-\section{Metody strumieniowania}
-\subsection{RTSP}
-\subsection{MPEG-DASH}
-\subsection{WebRTC}
-
-\chapter{WebRTC}
-\section{Przegląd}
-\section{Ustanawianie sesji}
-\section{Mechanizmy STUN}
-\section{Mechanizmy wymiany danych}
+\include{rozdzial02}
+\include{rozdzial03}
 
 \chapter{Aplikacja webowa z użyciem WebRTC}
 \section{Architektura, budowa aplikacji, omówienie kodu}
@@ -924,16 +920,17 @@ Specjalność: & {\bfseries \@specjalnosc}\\
 % \include{rozdzial05}
 % \include{rozdzial06}
 
-%\bibliographystyle{plalpha}
+% \bibliographystyle{plalpha}
 % \bibliographystyle{plabbrv}
 
 %UWAGA: bibliotekę referencji należy przygotować samemu. Dobrym do tego narzędziem jest JabRef.
 %       Nazwę przygotowanej biblioteki wpisuje się poniżej bez rozszerzenia
 %       (w tym przypadku jest to "dokumentacja.bib")
-\setlength{\bibitemsep}{2pt} % - by zacieśnić wykaz literatury
-%\addtocontents{toc}{\addvspace{5pt}} % ustawiamy odstęp przed literaturą w spisie treści
+% \setlength{\bibitemsep}{2pt} % - by zacieśnić wykaz literatury
+% \addtocontents{toc}{\addvspace{5pt}} % ustawiamy odstęp przed literaturą w spisie treści
 % \bibliography{dokumentacja}
-\appendix
+\printbibliography
+% \appendix
 \include{dodatekA}
 \include{dodatekB}
 
