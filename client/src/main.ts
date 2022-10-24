@@ -17,7 +17,24 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 
-let peerConnection = new RTCPeerConnection();
+let peerConnection = new RTCPeerConnection({
+  iceServers: [
+    {
+      urls: [
+        'stun.l.google.com:19302',
+        'stun1.l.google.com:19302',
+        'stun2.l.google.com:19302',
+        'stun3.l.google.com:19302',
+        'stun4.l.google.com:19302',
+      ]
+    },
+    {
+      urls: "turn:openrelay.metered.ca:80",
+      username: "openrelayproject",
+      credential: "openrelayproject",
+    },
+  ]
+});
 
 let localStream: MediaStream;
 let remoteStream: MediaStream;
