@@ -1,8 +1,5 @@
-// Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-import { getFirestore, getDocs, collection, addDoc, getDoc, doc, setDoc, onSnapshot, updateDoc } from "firebase/firestore";
+import { getFirestore, collection, addDoc, getDoc, doc, setDoc, onSnapshot, updateDoc } from "firebase/firestore";
 
 
 // Your web app's Firebase configuration
@@ -27,11 +24,10 @@ let remoteStream: MediaStream;
 
 const webcamButton = document.getElementById('webcamButton');
 const localVideo = document.getElementById('localVideo')! as HTMLVideoElement;
+const remoteVideo = document.getElementById('remoteVideo')! as HTMLVideoElement;
 const callButton = document.getElementById('callButton') as HTMLButtonElement;
 const callInput = document.getElementById('callInput') as HTMLInputElement;
 const answerButton = document.getElementById('answerButton') as HTMLButtonElement;
-const remoteVideo = document.getElementById('remoteVideo')! as HTMLVideoElement;
-const hangupButton = document.getElementById('hangupButton');
 
 
 webcamButton?.addEventListener('click', async () => {
@@ -62,7 +58,7 @@ webcamButton?.addEventListener('click', async () => {
 });
 
 callButton?.addEventListener('click', async () => {
-  const callDoc = (await doc(collection(db, "calls")));
+  const callDoc = doc(collection(db, "calls"));
   const offerCandidates = collection(callDoc, "offerCandidates");
   const answerCandidates = collection(callDoc, "answerCandidates");
 
@@ -96,7 +92,7 @@ callButton?.addEventListener('click', async () => {
     snapshot.docChanges().forEach((change) => {
       if (change.type === "added") {
         const candidate = new RTCIceCandidate(change.doc.data());
-        peerConnection.addIceCandidate();
+        peerConnection.addIceCandidate(candidate);
       }
     })
   })
