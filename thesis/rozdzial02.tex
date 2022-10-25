@@ -3,14 +3,27 @@
 Jakieś wprowadzenie o wideo ogólnie, w jakich kontekstach występuje (pliki wideo, streaming np. Youtube/Netflix,
 strumienie czasu rzeczywistego np. Twitch/Discord/Teams), czym te konteksty się różnią.
 
+Możemy wyróżnić 3 rodzaje wideo:
+
+\begin{itemize}
+	\item lokalne pliki wideo - pliki wideo na dysku w kontenerze mp4, mkv, lub innym
+	\item streamowanie plików wideo (np. Youtube albo Netflix) - mamy przygotowane segmenty pliku wideo w różnych
+	      rozdzielczościach i wysyłamy je po kolei, dobieramy rozdzielczość wg. dostępnego pasma pomiędzy serwerem a
+	      klientem
+	\item strumieniowanie w czasie rzeczywistym - priorytetem jest opóźnienie, kodujemy na bieżąco przechwytywane klatki
+	      i wysyłamy je najszybciej jak się da; przez to niektóre mechanizmy kompresji są niedostępne (np. B-klatki,
+	      które wykorzystują dane z następnej klatki aby zmniejszyć wielkość klatki)
+\end{itemize}
+
 Zidealizowany obraz rozmowy wideo w internecie:
 \begin{enumerate}
 	\item Komputery są publicznymi hostami w internecie i program komunikatora słucha na danym porcie
 	\item Strona nawiązująca połączenie łączy się do hosta odbiorcy po tym porcie, sygnalizuje chęć nawiązania
 	      połączenia
 	\item Strona odbierająca akceptuje
-	\item Kamera nadawcy przechwytuje najlepszy obraz jaki może, klatka po klatce i przesyła go do komputera
-	\item Komputer wysyła przechwycone klatki wcześniej ustanowionym kanałem
+	\item Kamera oraz mikrofon nadawcy przechwytują najlepszy możliwy obraz i dzwięk, i przesyłają je do komputera
+	\item Strumienie wideo i audio są łączone i synchronizowane
+	\item Komputer wysyła strumień audio-wideo wcześniej ustanowionym kanałem
 \end{enumerate}
 
 Natomiast pojawiają się problemy:

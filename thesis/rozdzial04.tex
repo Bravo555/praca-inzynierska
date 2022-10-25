@@ -1,106 +1,212 @@
-\chapter{Redakcja pracy}
-\section{Układ pracy}
-Istnieje wiele sposobów organizacji poszczególnych rozdziałów pracy. W dokumentacji klasy memoir (\url{http://tug.ctan.org/tex-archive/macros/latex/contrib/memoir/memman.pdf}) można np.\ znaleźć zalecenia co do edytorskiej strony amerykańskich prac dyplomowych. Na stronie 363 można przeczytać, że część początkowa pracy może zawierać:
+\chapter{Aplikacja webowa z użyciem WebRTC}
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=\textwidth]{img/webrtc-app}
+	\caption{Zrzut ekranu aplikacji WebRTC podczas połączenia na tym samym komputerze}
+	\label{fig:webrtc_app}
+\end{figure}
+
+\section{Architektura, budowa aplikacji, omówienie kodu}
+
+Aplikacja używa WebRTC do nawiązywania połączenia, Firebase do sygnalizowania out of band.
+
+Aby nawiązać połączenie, trzeba wykonać następujące kroki:
+
 \begin{enumerate}
-\item Title page
-\item Approval page
-\item Abstract
-\item Dedication (optional)
-\item Acknowledgements (optional)
-\item Table of contents
-\item List of tables (if there are any tables)
-\item List of figures (if there are any figures)
-\item Other lists (e.g., nomenclature, definitions, glossary of terms, etc.)
-\item Preface (optional but must be less than ten pages)
-\item Under special circumstances further sections may be allowed
-\end{enumerate}
-A dalej kolejne wymagania, w tym informacje o zawartości części końcowej:
-\begin{enumerate}
-\item Notes (if you are using endnotes and grouping them at the end)
-\item References (AKA ‘Bibliography’ or ‘Works Cited’)
-\item Appendices
-\item Biographical sketch (optional)
+	\item Użytkownicy 1 i 2 wciskają przycisk \textbf{Start webcam} aby udostępnić obraz z kamery aplikacji.
+	\item Użytkownik 1 wciska przycisk \textbf{Call}, tworząc nowe połączenie.
+	\item Użytkownik 1 odczytuje ID połączenia które pojawiło się w polu tekstowym i przekazuje je użytkownikowi 2.
+	\item Użytkownik 2 wprowadza ID połączenia uzyskane od użytkownika 1 w to samo pole tekstowe i wciska przycisk
+	      \textbf{Connect}.
 \end{enumerate}
 
-Prace dyplomowe powstające na Wydziale Informatyli i Teleinformatyki Politechniki Wrocławskiej standardowo redaguje się w następującym układzie:
-\begin{quote}
-\item Strona tytułowa
-\item Streszczenie 
-\item Strona z dedykacją (opcjonalna)
-\item Spis treści  
-\item Spis rysunków (opcjonalny)
-\item Spis tabel (opcjonalny)
-\item Spis listingów (opcjonalny)
-\item Skróty (wykaz opcjonalny)
-\item Abstrakt 
-\item 1. Wstęp 
-\begin{quote}
-\item 1.1 Wprowadzenie 
-\item 1.2 Cel i zakres pracy 
-\item 1.3 Układ pracy 
-\end{quote}
-\item 2. Kolejny rozdział
-\begin{quote}
-\item 2.1 Sekcja
-\begin{quote}
-\item 2.1.1 Podsekcja
-\begin{quote}
-\item Nienumerowana podpodsekcja
-\begin{quote}
-\item Paragraf
-\end{quote}
-\end{quote}
-\end{quote}
-\end{quote}
-\item $\ldots$
-\item \#. Podsumownie i wnioski
-\item Literatura
-\item A. Dodatek
-\begin{quote}
-\item A.1 Sekcja w dodatku
-\end{quote}
-\item $\ldots$
-\item \$. Instrukcja wdrożeniowa
-\item \$. Zawartość płyty CD/DVD
-\item Indeks rzeczowy (opcjonalny)
-\end{quote}\vspace{5mm}
+\subsection{Przechwytywanie wideo i audio}
+
+\begin{lstlisting}[language=Javascript,label=list:media-capture, caption=Przechwytywanie wideo i audio z komputera,
+basicstyle=\footnotesize \ttfamily, showtabs=true, tabsize=4]
+let localStream: MediaStream;
+const webcamButton = document.getElementById('webcamButton');
+
+webcamButton?.addEventListener('click', async () => {
+	if (localVideo.srcObject) {
+		localVideo.srcObject = null;
+		return;
+	}
+
+	localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true, });
+	webcamButton.innerHTML = 'Stop webcam';
+
+	remoteStream = new MediaStream();
+	remoteVideo.srcObject = remoteStream;
 
 
-Streszczenie -- syntetyczny opis tego, o czym jest i co zawiera praca, zwykle jednostronicowy, po polsku i po angielsku (podczas wysyłania pracy do analizy antyplagiatowej należy skopiować tekst z tej sekcji do formularza w systemie ASAP).
+	localStream.getTracks().forEach((track) => { peerConnection.addTrack(track, localStream); });
+	peerConnection.addEventListener('track', event => {
+		event.streams[0].getTracks().forEach(track => {
+			remoteStream.addTrack(track);
+		});
+	});
 
-Spis treści -- powinien być generowany automatycznie, z podaniem tytułów i numerów stron. Typ czcionki oraz wielkość liter spisu treści powinny być takie same jak w niniejszym wzorcu.
+	localVideo.srcObject = localStream;
+	remoteVideo.srcObject = remoteStream;
 
-Spis rysunków, Spis tabel -- powinny być generowane automatycznie (podobnie jak Spis treści). Elementy te są opcjonalne (robienie osobnego spisu, w którym na przykład są tylko dwie pozycje specjalnie nie ma sensu).
+	callButton.disabled = false;
+	answerButton.disabled = false;
+});
 
-Skróty -- jeśli w pracy występują liczne skróty, to w tej części należy podać ich rozwinięcia.
+\end{lstlisting}
 
-Wstęp -- pierwszy rozdział, w którym powinien znaleźć się opis dziedziny, w jakiej osadzona jest praca, oraz wyjaśnienie motywacji do podjęcia tematu (na to przeznaczona jest sekcja ,,Wprowadzenie''). W sekcji ,,Cel i zakres'' powinien znaleźć się opis celu oraz zadań do wykonania, zaś w sekcji ,,Układ pracy'' -- opis zawartości kolejnych rozdziałów.
+\subsection{Tworzenie połączenia}
 
-Podsumowanie -- w rozdziale tym powinny być zamieszczone: podsumowanie uzyskanych efektów oraz wnioski końcowe wynikające z realizacji celu pracy dyplomowej.
+Aby utworzyć połączenie WebRTC, musimy najpierw skomunikować się z drugim klientem przez jakiś inny kanał, aka.
+out-of-band, wykorzystamy do tego celu bazę danych czasu rzeczywistego Firebase. Przygotujemy zatem uchwyt do bazy
+danych:
 
-Literatura -- wykaz źródeł wykorzystanych w pracy (do każdego źródła musi istnieć odpowiednie cytowanie w tekście). Wykaz ten powinien być generowany automatycznie.
+\begin{lstlisting}[language=Javascript,label=list:firebase-init, caption=Inicjalizacja Firebase,
+basicstyle=\footnotesize \ttfamily, showtabs=true, tabsize=4]
+import { initializeApp } from "firebase/app";
+import { getFirestore, collection, addDoc, getDoc, doc, setDoc, onSnapshot, updateDoc } from "firebase/firestore";
 
-Dodatki -- miejsce na zamieszczanie informacji dodatkowych, jak: Instrukcja wdrożeniowa, Instrukcja uruchomieniowa, Podręcznik użytkownika itp.
-Osobny dodatek powinien być przeznaczony na opis zawartości dołączonej płyty CD/DVD. Założono, że będzie to zawsze ostatni dodatek.
 
-Indeks rzeczowy -- miejsce na zamieszczenie kluczowych wyrazów, do których czytelnik będzie chciał sięgnąć. Indeks powinien być generowany automatycznie. Jego załączanie jest opcjonalne.
-\section{Styl}
-\label{sec:Styl}
-Zasady pisania pracy (przy okazji można tu zaobserwować efekt wyrównania wpisów występujących na liście wyliczeniowej uzależnione od długości etykiety):
-\begin{enumerate}[labelwidth=\widthof{\ref{last-item}},label=\arabic*.]
-\item Praca dyplomowa powinna być napisana w  formie bezosobowej (,,w pracy pokazano ...''). Taki styl przyjęto na uczelniach w naszym kraju, choć w krajach anglosaskich preferuje się redagowanie treści w pierwszej osobie.
-\item W tekście pracy można odwołać się do myśli autora, ale nie w pierwszej osobie, tylko poprzez wyrażenia typu: ,,autor wykazał, że ...''. 
-\item Odwołując się do rysunków i tabel należy używać zwrotów typu: ,,na rysunku pokazano ...'', ,,w tabeli zamieszczono ...'' (tabela i rysunek to twory nieżywotne, więc ,,rysunek pokazuje'' jest niepoprawnym zwrotem).
-\item Praca powinna być napisana językiem formalnym, bez wyrażeń żargonowych (,,sejwowanie'' i ,,downloadowanie''), nieformalnych czy zbyt ozdobnych (,,najznamienitszym przykładem tego niebywałego postępu ...'')
-\item Pisząc pracę należy dbać o poprawność stylistyczną wypowiedzi
+// Your web app's Firebase configuration
+const firebaseConfig = {
+	apiKey: "AIzaSyCr12-OQV5bgdQPFoexd44O9Ubmht966pw",
+	authDomain: "piperchat-2eacd.firebaseapp.com",
+	projectId: "piperchat-2eacd",
+	storageBucket: "piperchat-2eacd.appspot.com",
+	messagingSenderId: "172730710087",
+	appId: "1:172730710087:web:3dabdb9a62bee44e095962"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+\end{lstlisting}
+
+Następnie, do przycisku \textbf{Call} tworzącego połączenie podpinamy handler:
+
+\begin{lstlisting}[language=Javascript,label=list:call-create, caption=Tworzenie połączenia,
+basicstyle=\footnotesize \ttfamily, showtabs=true, tabsize=4]
+callButton?.addEventListener('click', async () => {
+  const callDoc = doc(collection(db, "calls"));
+  const offerCandidates = collection(callDoc, "offerCandidates");
+  const answerCandidates = collection(callDoc, "answerCandidates");
+
+  callInput.value = callDoc.id;
+
+  peerConnection.onicecandidate = (event) => {
+    if (event.candidate) {
+      addDoc(offerCandidates, event.candidate.toJSON());
+    }
+  }
+
+  const offerDescription = await peerConnection.createOffer();
+  await peerConnection.setLocalDescription(offerDescription);
+
+  const offer = {
+    sdp: offerDescription.sdp,
+    type: offerDescription.type
+  };
+
+  await setDoc(callDoc, { offer });
+
+  onSnapshot(callDoc, (snapshot) => {
+    const data = snapshot.data();
+    if (!peerConnection.currentRemoteDescription && data?.answer) {
+      const answerDescription = new RTCSessionDescription(data.answer);
+      peerConnection.setRemoteDescription(answerDescription);
+    }
+  });
+
+  onSnapshot(answerCandidates, (snapshot) => {
+    snapshot.docChanges().forEach((change) => {
+      if (change.type === "added") {
+        const candidate = new RTCIceCandidate(change.doc.data());
+        peerConnection.addIceCandidate(candidate);
+      }
+    })
+  })
+});
+\end{lstlisting}
+
+\subsection{Dołączanie do połączenia}
+
+\begin{lstlisting}[language=Javascript,label=list:call-join, caption=Dołączanie do połączenia połączenia,
+basicstyle=\footnotesize \ttfamily, showtabs=true, tabsize=4]
+answerButton?.addEventListener("click", async () => {
+  const callId = callInput.value;
+  const callDoc = doc(db, "calls", callId);
+  const answerCandidates = collection(callDoc, "answerCandidates");
+  const offerCandidates = collection(callDoc, "offerCandidates");
+
+  peerConnection.onicecandidate = (event) => {
+    if (event.candidate) {
+      addDoc(answerCandidates, event.candidate.toJSON());
+    }
+  }
+
+  const callData = (await getDoc(callDoc)).data();
+  if (!callData) {
+    console.error("Call document no longer exists");
+    return;
+  }
+  const offerDescription = callData.offer;
+  await peerConnection.setRemoteDescription(new RTCSessionDescription(offerDescription));
+
+  const answerDescription = await peerConnection.createAnswer();
+  await peerConnection.setLocalDescription(answerDescription);
+
+  const answer = {
+    type: answerDescription.type,
+    sdp: answerDescription.sdp,
+  };
+
+  await updateDoc(callDoc, { answer });
+
+  onSnapshot(offerCandidates, (snapshot) => {
+    snapshot.docChanges().forEach((change) => {
+      if (change.type === "added") {
+        const data = change.doc.data();
+        peerConnection.addIceCandidate(new RTCIceCandidate(data));
+      }
+    })
+  });
+});
+\end{lstlisting}
+
+\section{Omówienie działania aplikacji na przykładzie}
+\subsection{Śledzenie procesu nawiązywania połączenia}
+
+W poniższym rozdziale zostaną omówione dane wymieniane pomiędzy stronami na rzecz ustanowienia połączenia WebRTC.
+
+
+Aby ustanowić połączenie peer-to-peer, należy rozwiązać poniższe problemy: \cite{hpbn}
+
 \begin{itemize}
-\item trzeba pamiętać, do czego stosuje się ,,liczba'', a do czego ,,ilość'',
-\item nie ,,szereg funkcji'' tylko ,,wiele funkcji'',
-\item redagowane zdania nie powinny być zbyt długie (lepiej podzielić zdanie wielokrotnie złożone na pojedyncze zdania),
-\item itp.
+	\item Należy powiadomić drugą stronę że chcemy ustanowić do niej połączenie, aby wiedziała ona żeby rozpocząć
+	      nasłuchiwanie.
+	\item Należy zidentyfikować ścieżki trasowania dla połączenia peer-to-peer i uzgodnić jedną pomiędzy obiema stronami.
+	\item Należy wymienić niezbędne informacje o używanych przez peerów parametrach połączenia - jakich protokołów,
+	      kodeków, ustawień, etc. użyć.
 \end{itemize}
-\item Zawartość rozdziałów powinna być dobrze wyważona. Nie wolno więc generować sekcji i podsekcji, które mają zbyt mało tekstu lub znacząco różnią się objętością. Zbyt krótkie podrozdziały można zaobserwować w przykładowym rozdziale~\ref{chap:podsumowanie}.
-\item Niedopuszczalne jest pozostawienie w pracy błędów ortograficznych czy tzw.\ literówek -- można je przecież znaleźć i skorygować
-automatycznie. \addtocounter{enumi}{9997} 
-\item  Tutaj pokazano, jak można zarządzać marginesem w otoczeniu \texttt{enumerate} (proszę zajrzeć do źródeł latexowego kodu tego rozdziału). \label{last-item}
-\end{enumerate}
+
+\subsubsection{Sygnalizowanie negocjacji sesji}
+
+W aplikacji webowej, użytkownik 1 tworzący nowe połączenie tworzy dokument w kolekcji calls, a następnie nasłuchuje na
+zmiany tego dokumentu. ID rozmowy to ID dokumentu utworzonego w bazie Firestore. Po tym kroku, w bazie pojawia się
+następujący dokument:
+
+\begin{lstlisting}[language=Javascript,label=list:call-doc-1, caption=Dokument połączenia po utworzeniu przez użytkownika 1,
+basicstyle=\footnotesize \ttfamily, showtabs=true, tabsize=4]
+{
+	id: "YHARFdJoA4lAd8nRu3Uw",
+	offerCandidates: [],
+	answerCandidates: []
+}
+\end{lstlisting}
+
+
+
+
+\subsection{Analiza pakietów protokołu SDP}
