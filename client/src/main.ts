@@ -62,6 +62,7 @@ webcamButton?.addEventListener('click', async () => {
   });
 
   localVideo.srcObject = localStream;
+  localVideo.muted = true;
   remoteVideo.srcObject = remoteStream;
 
   callButton.disabled = false;
@@ -140,6 +141,7 @@ answerButton?.addEventListener("click", async () => {
   await updateDoc(callDoc, { answer });
 
   onSnapshot(offerCandidates, (snapshot) => {
+    console.info("Offer candidates:", snapshot.docChanges());
     snapshot.docChanges().forEach((change) => {
       if (change.type === "added") {
         const data = change.doc.data();
