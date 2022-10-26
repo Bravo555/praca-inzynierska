@@ -1,15 +1,13 @@
 \chapter{Aplikacja webowa z użyciem WebRTC}
 
+W poniższym rozdziale zostanie omówiona aplikacja webowa wykorzystująca WebRTC.
+
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=\textwidth]{img/webrtc-app}
   \caption{Zrzut ekranu aplikacji WebRTC podczas połączenia na tym samym komputerze}
   \label{fig:webrtc_app}
 \end{figure}
-
-\section{Architektura, budowa aplikacji, omówienie kodu}
-
-Aplikacja używa WebRTC do nawiązywania połączenia, Firebase do sygnalizowania out of band.
 
 Aby nawiązać połączenie, trzeba wykonać następujące kroki:
 
@@ -21,6 +19,46 @@ Aby nawiązać połączenie, trzeba wykonać następujące kroki:
         \textbf{Connect}.
 \end{enumerate}
 
+Następnie odbywa się proces nawiązywania połączenia zaprezentowany na diagramie \ref{fig:webrtc_connection_init}.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics{img/webrtc-connection-init}
+  \caption{Diagram prezentujący proces nawiązywania połączenia}
+  \label{fig:webrtc_connection_init}
+\end{figure}
+
+\begin{enumerate}
+  \item Użytkownik 1 tworzy ofertę połączenia oraz wysyła ją do bazy Firestore. Rozpoczyna także proces nasłuchiwania
+        odpowiedzi i kandydatów ICE drugiej strony.
+  \item Użytkownik 1 rozpoczyna proces odkrywania kandydatów ICE.
+  \item Użytkownik 1 wysyła na bieżąco do Firestore otrzymywanych kandydatów ICE (trickle ICE).
+  \item Użytkownik 2 odczytuje z bazy ofertę użytkownika 1, generuje na nią odpowiedź, i wysyła ją do Firestore.
+  \item Użytkownik 2 rozpoczyna proces odkrywania kandydatów ICE.
+  \item Użytkownik 2 wysyła na bieżąco do Firestore otrzymywanych kandydatów ICE (trickle ICE).
+  \item Świadomi oferty, odpowiedzi, oraz kandydatów ICE drugiej strony, użytkownicy mogą nawiązać połączenie
+        peer-to-peer (lub w sytuacjach kiedy połączenie peer-to-peer jest niemożliwe, łączą się używając serwera TURN
+        jako pośrednika).
+        
+\end{enumerate}
+
+\section{Architektura}
+
+Aplikacja składa się z następujących technologii:
+
+\begin{itemize}
+  \item \textbf{Frontend}: Node.js jako środowisko, Vite jako transpilator JS, Typescript jako język programowania
+  \item \textbf{Backend}: Firestore z platformy Google Firebase jako pośrednik między klientami w procesie nawiązywania
+        połączenia. Firestore jest przede wszystkim bazą danych NoSQL, jednak oferowana przez nią funkcjonalność
+        nasłuchiwania dokumentów oraz otrzymywania ich aktualizacji w czasie rzeczywistym sprawia, że może być
+        zastosowana w tym celu, co zwalnia programistę z obowiązku przygotowania, utrzymywania i zarządzania serwerem.
+  \item \textbf{WebRTC}: Do nawiązywania połączeń wykorzystywane jest API WebRTC dostępne w przeglądarkach
+        internetowych. Do realizacji procesu ICE, pozwalającemu stronom na zebranie możliwych ścieżek połączenia
+        peer-to-peer, a także w wypadku jego niepowodzenia skorzystanie z serwera TURN jako pośrednika, skorzystano z
+        serwerów oferowanych przez \href{https://www.metered.ca/tools/openrelay/}{Open Relay}
+\end{itemize}
+
+\section{Wybrane fragmenty kodu}
 \subsection{Przechwytywanie wideo i audio}
 
 \begin{lstlisting}[language=Javascript,label=list:media-capture, caption=Przechwytywanie wideo i audio z komputera,
@@ -257,7 +295,8 @@ basicstyle=\footnotesize \ttfamily, showtabs=true, tabsize=4]
 
 Na koniec, użytkownik 1 wysłuchuje zmian w dokumencie sygnalizujących próbę nawiązania połączenia. Dokładniej,
 użytkownik 1 oczekuje na pojawienie się, analogicznie do \verb|offer| i \verb|offerCandidates|, pól \verb|answer| oraz
-\verb|answerCandidates|. Zawartość tych pól trafi do obiektu \verb|RTCPeerConnection|, które zajmie się ustanowieniem połączenia.
+\verb|answerCandidates|. Zawartość tych pól trafi do obiektu \verb|RTCPeerConnection|, które zajmie się ustanowieniem
+połączenia.
 
 
 \subsection{Analiza pakietów protokołu SDP}
@@ -265,7 +304,7 @@ użytkownik 1 oczekuje na pojawienie się, analogicznie do \verb|offer| i \verb|
 Parametry ustanowionego połączenia są determinowane przez protokół SDP. Zobaczmy zatem pakiet SDP z poprzedniego
 podrozdziału:
 
-\begin{lstlisting}[label=list:call-doc-1, caption=Opis oferty połączenia SDP,
+\begin{lstlisting}[label=list:call-sdp-1, caption=Opis oferty połączenia SDP,
 basicstyle=\footnotesize \ttfamily, showtabs=true, tabsize=4]
 v=0
 o=mozilla...THIS_IS_SDPARTA-99.0 107455341790422027 0 IN IP4 0.0.0.0
@@ -351,7 +390,8 @@ a=ssrc:1910270587 cname:{a77c69ce-8bfc-4cf6-ac3c-0db7976f374a}
 a=ssrc-group:FID 335903003 1910270587
 \end{lstlisting}
 
-\cite{rfc8866} SDP opisuje sesję jako kolekjcję pól, z których każde zawiera się w jednej linii. Od góry do dołu mamy:
+\cite{rfc8866} SDP opisuje sesję jako kolekjcję pól, z których każde zawiera się w jednej linii. Na przykładzie opisu
+sesji z listingu \ref{list:call-sdp-1}, można wyróżnić następujące pola:
 
 \begin{itemize}
   \item \verb|v=0|: wersja numeru protokołu - aktualnie 0 jest jedyną możliwą wersją
