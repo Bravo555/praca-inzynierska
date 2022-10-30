@@ -1,0 +1,6 @@
+- dodac przynaleznosc do uczelni promotora (numerek w nawiasie)
+- przebudowac zeby byla jasna czesc teoretyczna i implementacyjna
+- krotki wstep do aplikacji webrtc
+- zrzuty ekranu wysrodkowac
+- dodac informacje ze "tutaj jest skrocona instrukcja obslugi aplikacji"
+- opisac fragmenty kodu + dodac komentarze
