@@ -31,13 +31,13 @@ impl Drop for AppWindow {
 }
 
 // Extract tags from streams of @stype and add the info in the UI.
-fn add_streams_info(playbin: &gst::Element, textbuf: &gtk3::TextBuffer, stype: &str) {
+fn add_streams_info(sink: &gst::Element, textbuf: &gtk3::TextBuffer, stype: &str) {
     let propname: &str = &format!("n-{}", stype);
     let signame: &str = &format!("get-{}-tags", stype);
 
-    let x = playbin.property::<i32>(propname);
+    let x = sink.property::<i32>(propname);
     for i in 0..x {
-        let tags = playbin.emit_by_name::<Option<gst::TagList>>(signame, &[&i]);
+        let tags = sink.emit_by_name::<Option<gst::TagList>>(signame, &[&i]);
 
         if let Some(tags) = tags {
             textbuf.insert_at_cursor(&format!("{} stream {}:\n ", stype, i));
@@ -73,7 +73,7 @@ fn analyze_streams(playbin: &gst::Element, textbuf: &gtk3::TextBuffer) {
 }
 
 // This creates all the GTK+ widgets that compose our application, and registers the callbacks
-fn create_ui(playbin: &gst::Element) -> AppWindow {
+fn create_ui(pipeline_: &gst::Pipeline, sink: &gst::Element) -> AppWindow {
     let main_window = gtk3::Window::new(gtk3::WindowType::Toplevel);
     main_window.connect_delete_event(|_, _| {
         gtk3::main_quit();
@@ -82,7 +82,7 @@ fn create_ui(playbin: &gst::Element) -> AppWindow {
 
     let play_button =
         gtk3::Button::from_icon_name(Some("media-playback-start"), gtk3::IconSize::SmallToolbar);
-    let pipeline = playbin.clone();
+    let pipeline = pipeline_.clone();
     play_button.connect_clicked(move |_| {
         let pipeline = &pipeline;
         pipeline
@@ -92,7 +92,7 @@ fn create_ui(playbin: &gst::Element) -> AppWindow {
 
     let pause_button =
         gtk3::Button::from_icon_name(Some("media-playback-pause"), gtk3::IconSize::SmallToolbar);
-    let pipeline = playbin.clone();
+    let pipeline = pipeline_.clone();
     pause_button.connect_clicked(move |_| {
         let pipeline = &pipeline;
         pipeline
@@ -102,7 +102,7 @@ fn create_ui(playbin: &gst::Element) -> AppWindow {
 
     let stop_button =
         gtk3::Button::from_icon_name(Some("media-playback-stop"), gtk3::IconSize::SmallToolbar);
-    let pipeline = playbin.clone();
+    let pipeline = pipeline_.clone();
     stop_button.connect_clicked(move |_| {
         let pipeline = &pipeline;
         pipeline
@@ -111,7 +111,7 @@ fn create_ui(playbin: &gst::Element) -> AppWindow {
     });
 
     let slider = gtk3::Scale::with_range(gtk3::Orientation::Horizontal, 0.0, 100.0, 1.0);
-    let pipeline = playbin.clone();
+    let pipeline = pipeline_.clone();
     let slider_update_signal_id = slider.connect_value_changed(move |slider| {
         let pipeline = &pipeline;
         let value = slider.value() as u64;
@@ -127,7 +127,7 @@ fn create_ui(playbin: &gst::Element) -> AppWindow {
     });
 
     slider.set_draw_value(false);
-    let pipeline = playbin.clone();
+    let pipeline = pipeline_.clone();
     let lslider = slider.clone();
     // Update the UI (seekbar) every second
     let timeout_id = glib::timeout_add_seconds_local(1, move || {
@@ -155,7 +155,7 @@ fn create_ui(playbin: &gst::Element) -> AppWindow {
 
     let video_window = gtk3::DrawingArea::new();
 
-    let video_overlay = playbin
+    let video_overlay = sink
         .clone()
         .dynamic_cast::<gst_video::VideoOverlay>()
         .unwrap();
@@ -190,13 +190,14 @@ fn create_ui(playbin: &gst::Element) -> AppWindow {
 
     let streams_list = gtk3::TextView::new();
     streams_list.set_editable(false);
-    let pipeline_weak = playbin.downgrade();
+    let pipeline_weak = pipeline_.downgrade();
     let streams_list_weak = glib::SendWeakRef::from(streams_list.downgrade());
-    let bus = playbin.bus().unwrap();
+    let bus = pipeline_.bus().unwrap();
 
     #[allow(clippy::single_match)]
     bus.connect_message(Some("application"), move |_, msg| match msg.view() {
         gst::MessageView::Application(application) => {
+            println!("RECEIVED MESSAGE");
             let pipeline = match pipeline_weak.upgrade() {
                 Some(pipeline) => pipeline,
                 None => return,
@@ -207,11 +208,14 @@ fn create_ui(playbin: &gst::Element) -> AppWindow {
                 None => return,
             };
 
-            if application.structure().map(|s| s.name()) == Some("tags-changed") {
+            if application.structure().map(|s| s.name()) == Some("video-format") {
+                println!("RECEIVED VIDEO FORMAT MESSAGE");
                 let textbuf = streams_list
                     .buffer()
                     .expect("Couldn't get buffer from text_view");
-                analyze_streams(&pipeline, &textbuf);
+                let structure = application.structure().unwrap();
+                let caps: gst::Caps = structure.get("video").unwrap();
+                textbuf.set_text(&format!("{caps:#?}"));
             }
         }
         _ => unreachable!(),
@@ -237,10 +241,13 @@ fn create_ui(playbin: &gst::Element) -> AppWindow {
 
 // We are possibly in a GStreamer working thread, so we notify the main
 // thread of this event through a message in the bus
-fn post_app_message(playbin: &gst::Element) {
-    let _ = playbin.post_message(gst::message::Application::new(gst::Structure::new_empty(
-        "tags-changed",
-    )));
+fn post_app_message(element: &gst::Element, caps: &gst::Caps) {
+    element
+        .post_message(gst::message::Application::new(gst::Structure::new(
+            "video-format",
+            &[("video", &caps)],
+        )))
+        .unwrap();
 }
 
 fn main() {
@@ -256,43 +263,21 @@ fn main() {
         return;
     }
 
-    let uri = "https://www.freedesktop.org/software/gstreamer-sdk/\
-                   data/media/sintel_trailer-480p.webm";
-    let playbin = gst::ElementFactory::make("playbin")
-        .property("uri", uri)
-        .build()
-        .unwrap();
+    let source = gst::ElementFactory::make("v4l2src").build().unwrap();
+    let convert = gst::ElementFactory::make("videoconvert").build().unwrap();
+    let sink = gst::ElementFactory::make("xvimagesink").build().unwrap();
 
-    playbin.connect("video-tags-changed", false, |args| {
-        let pipeline = args[0]
-            .get::<gst::Element>()
-            .expect("playbin \"video-tags-changed\" args[0]");
-        post_app_message(&pipeline);
-        None
-    });
+    let pipeline = gst::Pipeline::builder().name("pipeline").build();
 
-    playbin.connect("audio-tags-changed", false, |args| {
-        let pipeline = args[0]
-            .get::<gst::Element>()
-            .expect("playbin \"audio-tags-changed\" args[0]");
-        post_app_message(&pipeline);
-        None
-    });
+    pipeline.add_many(&[&source, &convert, &sink]).unwrap();
+    gst::Element::link_many(&[&source, &convert, &sink]).expect("Elements could not be linked.");
 
-    playbin.connect("text-tags-changed", false, move |args| {
-        let pipeline = args[0]
-            .get::<gst::Element>()
-            .expect("playbin \"text-tags-changed\" args[0]");
-        post_app_message(&pipeline);
-        None
-    });
+    let window = create_ui(&pipeline, &sink);
 
-    let window = create_ui(&playbin);
-
-    let bus = playbin.bus().unwrap();
+    let bus = pipeline.bus().unwrap();
     bus.add_signal_watch();
 
-    let pipeline_weak = playbin.downgrade();
+    let pipeline_weak = pipeline.downgrade();
     bus.connect_message(None, move |_, msg| {
         let pipeline = match pipeline_weak.upgrade() {
             Some(pipeline) => pipeline,
@@ -300,7 +285,7 @@ fn main() {
         };
 
         match msg.view() {
-            //  This is called when an End-Of-Stream message is posted on the bus.
+            // This is called when an End-Of-Stream message is posted on the bus.
             // We just set the pipeline to READY (which stops playback).
             gst::MessageView::Eos(..) => {
                 println!("End-Of-Stream reached.");
@@ -322,20 +307,34 @@ fn main() {
             // keep track of the current state.
             gst::MessageView::StateChanged(state_changed) => {
                 if state_changed.src().map(|s| s == pipeline).unwrap_or(false) {
-                    println!("State set to {:?}", state_changed.current());
+                    let new_state = state_changed.current();
+                    let old_state = state_changed.old();
+
+                    println!(
+                        "Pipeline state changed from {:?} to {:?}",
+                        old_state, new_state
+                    );
+
+                    if new_state == gst::State::Playing {
+                        println!("Source capabilities in {new_state:?} state:");
+                        let pad = source.static_pad("src").unwrap();
+                        let caps = pad.caps().unwrap_or_else(|| pad.query_caps(None));
+                        println!("{:#?}", &caps);
+                        post_app_message(&source, &caps);
+                    }
                 }
             }
             _ => (),
         }
     });
 
-    playbin
+    pipeline
         .set_state(gst::State::Playing)
         .expect("Unable to set the playbin to the `Playing` state");
 
     gtk3::main();
     window.hide();
-    playbin
+    pipeline
         .set_state(gst::State::Null)
         .expect("Unable to set the playbin to the `Null` state");
 
