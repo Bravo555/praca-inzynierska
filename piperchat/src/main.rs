@@ -147,12 +147,6 @@ fn create_ui(pipeline_: &gst::Pipeline, sink: &gst::Element) -> AppWindow {
         Continue(true)
     });
 
-    let controls = gtk3::Box::new(gtk3::Orientation::Horizontal, 0);
-    controls.pack_start(&play_button, false, false, 0);
-    controls.pack_start(&pause_button, false, false, 0);
-    controls.pack_start(&stop_button, false, false, 0);
-    controls.pack_start(&slider, true, true, 2);
-
     let video_window = gtk3::DrawingArea::new();
 
     let video_overlay = sink
@@ -225,10 +219,7 @@ fn create_ui(pipeline_: &gst::Pipeline, sink: &gst::Element) -> AppWindow {
     vbox.pack_start(&video_window, true, true, 0);
     vbox.pack_start(&streams_list, false, false, 2);
 
-    let main_box = gtk3::Box::new(gtk3::Orientation::Vertical, 0);
-    main_box.pack_start(&vbox, true, true, 0);
-    main_box.pack_start(&controls, false, false, 0);
-    main_window.add(&main_box);
+    main_window.add(&vbox);
     main_window.set_default_size(640, 480);
 
     main_window.show_all();
