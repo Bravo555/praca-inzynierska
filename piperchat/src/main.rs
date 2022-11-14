@@ -3,21 +3,21 @@ use gst_video::prelude::*;
 use std::os::raw::c_void;
 use std::process;
 
-use gtk3::prelude::*;
+use gtk::prelude::*;
 
 use std::ops;
 
 // Custom struct to keep our window reference alive and to store the timeout id so that we can remove it from the main
 // context again later and drop the references it keeps inside its closures
 struct AppWindow {
-    main_window: gtk3::Window,
+    main_window: gtk::Window,
     timeout_id: Option<glib::SourceId>,
 }
 
 impl ops::Deref for AppWindow {
-    type Target = gtk3::Window;
+    type Target = gtk::Window;
 
-    fn deref(&self) -> &gtk3::Window {
+    fn deref(&self) -> &gtk::Window {
         &self.main_window
     }
 }
@@ -31,7 +31,7 @@ impl Drop for AppWindow {
 }
 
 // Extract tags from streams of @stype and add the info in the UI.
-fn add_streams_info(sink: &gst::Element, textbuf: &gtk3::TextBuffer, stype: &str) {
+fn add_streams_info(sink: &gst::Element, textbuf: &gtk::TextBuffer, stype: &str) {
     let propname: &str = &format!("n-{}", stype);
     let signame: &str = &format!("get-{}-tags", stype);
 
@@ -62,7 +62,7 @@ fn add_streams_info(sink: &gst::Element, textbuf: &gtk3::TextBuffer, stype: &str
 }
 
 // Extract metadata from all the streams and write it to the text widget in the GUI
-fn analyze_streams(playbin: &gst::Element, textbuf: &gtk3::TextBuffer) {
+fn analyze_streams(playbin: &gst::Element, textbuf: &gtk::TextBuffer) {
     {
         textbuf.set_text("");
     }
@@ -74,14 +74,14 @@ fn analyze_streams(playbin: &gst::Element, textbuf: &gtk3::TextBuffer) {
 
 // This creates all the GTK+ widgets that compose our application, and registers the callbacks
 fn create_ui(pipeline_: &gst::Pipeline, sink: &gst::Element) -> AppWindow {
-    let main_window = gtk3::Window::new(gtk3::WindowType::Toplevel);
+    let main_window = gtk::Window::new(gtk::WindowType::Toplevel);
     main_window.connect_delete_event(|_, _| {
-        gtk3::main_quit();
+        gtk::main_quit();
         Inhibit(false)
     });
 
     let play_button =
-        gtk3::Button::from_icon_name(Some("media-playback-start"), gtk3::IconSize::SmallToolbar);
+        gtk::Button::from_icon_name(Some("media-playback-start"), gtk::IconSize::SmallToolbar);
     let pipeline = pipeline_.clone();
     play_button.connect_clicked(move |_| {
         let pipeline = &pipeline;
@@ -91,7 +91,7 @@ fn create_ui(pipeline_: &gst::Pipeline, sink: &gst::Element) -> AppWindow {
     });
 
     let pause_button =
-        gtk3::Button::from_icon_name(Some("media-playback-pause"), gtk3::IconSize::SmallToolbar);
+        gtk::Button::from_icon_name(Some("media-playback-pause"), gtk::IconSize::SmallToolbar);
     let pipeline = pipeline_.clone();
     pause_button.connect_clicked(move |_| {
         let pipeline = &pipeline;
@@ -101,7 +101,7 @@ fn create_ui(pipeline_: &gst::Pipeline, sink: &gst::Element) -> AppWindow {
     });
 
     let stop_button =
-        gtk3::Button::from_icon_name(Some("media-playback-stop"), gtk3::IconSize::SmallToolbar);
+        gtk::Button::from_icon_name(Some("media-playback-stop"), gtk::IconSize::SmallToolbar);
     let pipeline = pipeline_.clone();
     stop_button.connect_clicked(move |_| {
         let pipeline = &pipeline;
@@ -110,7 +110,7 @@ fn create_ui(pipeline_: &gst::Pipeline, sink: &gst::Element) -> AppWindow {
             .expect("Unable to set the pipeline to the `Ready` state");
     });
 
-    let slider = gtk3::Scale::with_range(gtk3::Orientation::Horizontal, 0.0, 100.0, 1.0);
+    let slider = gtk::Scale::with_range(gtk::Orientation::Horizontal, 0.0, 100.0, 1.0);
     let pipeline = pipeline_.clone();
     let slider_update_signal_id = slider.connect_value_changed(move |slider| {
         let pipeline = &pipeline;
@@ -147,7 +147,7 @@ fn create_ui(pipeline_: &gst::Pipeline, sink: &gst::Element) -> AppWindow {
         Continue(true)
     });
 
-    let video_window = gtk3::DrawingArea::new();
+    let video_window = gtk::DrawingArea::new();
 
     let video_overlay = sink
         .clone()
@@ -182,7 +182,7 @@ fn create_ui(pipeline_: &gst::Pipeline, sink: &gst::Element) -> AppWindow {
         }
     });
 
-    let streams_list = gtk3::TextView::new();
+    let streams_list = gtk::TextView::new();
     streams_list.set_editable(false);
     let pipeline_weak = pipeline_.downgrade();
     let streams_list_weak = glib::SendWeakRef::from(streams_list.downgrade());
@@ -215,7 +215,7 @@ fn create_ui(pipeline_: &gst::Pipeline, sink: &gst::Element) -> AppWindow {
         _ => unreachable!(),
     });
 
-    let vbox = gtk3::Box::new(gtk3::Orientation::Horizontal, 0);
+    let vbox = gtk::Box::new(gtk::Orientation::Horizontal, 0);
     vbox.pack_start(&video_window, true, true, 0);
     vbox.pack_start(&streams_list, false, false, 2);
 
@@ -243,7 +243,7 @@ fn post_app_message(element: &gst::Element, caps: &gst::Caps) {
 
 fn main() {
     // Initialize GTK
-    if let Err(err) = gtk3::init() {
+    if let Err(err) = gtk::init() {
         eprintln!("Failed to initialize GTK: {}", err);
         return;
     }
@@ -323,7 +323,7 @@ fn main() {
         .set_state(gst::State::Playing)
         .expect("Unable to set the playbin to the `Playing` state");
 
-    gtk3::main();
+    gtk::main();
     window.hide();
     pipeline
         .set_state(gst::State::Null)
