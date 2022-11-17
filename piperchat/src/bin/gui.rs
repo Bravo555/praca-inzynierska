@@ -1,15 +1,17 @@
-use gtk4::{gio, prelude::*, Application, ApplicationWindow};
+use gtk4::prelude::*;
+use gtk4::{gio, Application};
 use piperchat::window::Window;
-
-const APP_ID: &str = "org.gtk_rs.HelloWorld1";
 
 fn main() {
     // Register and include resources
-    gio::resources_register_include!("resources.gresource").expect("Failed to register resources.");
+    gio::resources_register_include!("todo_1.gresource").expect("Failed to register resources.");
 
     // Create a new application
-    let app = Application::builder().application_id(APP_ID).build();
+    let app = Application::builder()
+        .application_id("org.gtk_rs.Todo1")
+        .build();
 
+    // Connect to "activate" signal of `app`
     app.connect_activate(build_ui);
 
     // Run the application
@@ -17,7 +19,7 @@ fn main() {
 }
 
 fn build_ui(app: &Application) {
-    // Create a window and set the title
+    // Create a new custom window and show it
     let window = Window::new(app);
     window.present();
 }
