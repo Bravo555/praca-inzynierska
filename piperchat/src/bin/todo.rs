@@ -1,17 +1,17 @@
 use gtk4::prelude::*;
 use gtk4::{gio, Application};
 use piperchat::window::Window;
+use piperchat::APP_ID;
 
 fn main() {
     // Register and include resources
     gio::resources_register_include!("todo_1.gresource").expect("Failed to register resources.");
 
     // Create a new application
-    let app = Application::builder()
-        .application_id("org.gtk_rs.Todo1")
-        .build();
+    let app = Application::builder().application_id(APP_ID).build();
 
-    // Connect to "activate" signal of `app`
+    // Connect signals
+    app.connect_startup(setup_shortcuts);
     app.connect_activate(build_ui);
 
     // Run the application
@@ -22,4 +22,10 @@ fn build_ui(app: &Application) {
     // Create a new custom window and show it
     let window = Window::new(app);
     window.present();
+}
+
+fn setup_shortcuts(app: &Application) {
+    app.set_accels_for_action("win.filter('All')", &["<Ctrl>a"]);
+    app.set_accels_for_action("win.filter('Open')", &["<Ctrl>o"]);
+    app.set_accels_for_action("win.filter('Done')", &["<Ctrl>d"]);
 }

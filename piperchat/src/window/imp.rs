@@ -1,19 +1,25 @@
 use std::cell::RefCell;
+use std::fs::File;
 
+use gio::Settings;
 use glib::subclass::InitializingObject;
-use gtk4::prelude::*;
+use gst::glib::once_cell::sync::OnceCell;
 use gtk4::subclass::prelude::*;
 use gtk4::{gio, glib, CompositeTemplate, Entry, ListView};
+use gtk4::{prelude::*, Inhibit};
+
+use crate::{utils, TaskData, TaskObject};
 
 // Object holding the state
 #[derive(CompositeTemplate, Default)]
-#[template(resource = "/org/gtk_rs/Todo1/window.ui")]
+#[template(resource = "/org/gtk_rs/Todo2/window.ui")]
 pub struct Window {
     #[template_child]
     pub entry: TemplateChild<Entry>,
     #[template_child]
     pub tasks_list: TemplateChild<ListView>,
     pub tasks: RefCell<Option<gio::ListStore>>,
+    pub settings: OnceCell<Settings>,
 }
 
 // The central trait for subclassing a GObject
@@ -41,9 +47,12 @@ impl ObjectImpl for Window {
 
         // Setup
         let obj = self.obj();
+        obj.setup_settings();
         obj.setup_tasks();
+        obj.restore_data();
         obj.setup_callbacks();
         obj.setup_factory();
+        obj.setup_actions();
     }
 }
 
@@ -51,7 +60,26 @@ impl ObjectImpl for Window {
 impl WidgetImpl for Window {}
 
 // Trait shared by all windows
-impl WindowImpl for Window {}
+impl WindowImpl for Window {
+    fn close_request(&self) -> Inhibit {
+        // Store task data in vector
+        let backup_data: Vec<TaskData> = self
+            .obj()
+            .tasks()
+            .snapshot()
+            .iter()
+            .filter_map(Cast::downcast_ref::<TaskObject>)
+            .map(TaskObject::task_data)
+            .collect();
+
+        // Save state to file
+        let file = File::create(utils::data_path()).expect("Could not create json file.");
+        serde_json::to_writer(file, &backup_data).expect("Could not write data to json file");
+
+        // Pass close request on to the parent
+        self.parent_close_request()
+    }
+}
 
 // Trait shared by all application windows
 impl ApplicationWindowImpl for Window {}
