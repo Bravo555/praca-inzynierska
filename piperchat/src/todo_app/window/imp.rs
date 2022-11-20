@@ -5,7 +5,7 @@ use gio::Settings;
 use glib::subclass::InitializingObject;
 use gst::glib::once_cell::sync::OnceCell;
 use gtk4::subclass::prelude::*;
-use gtk4::{gio, glib, CompositeTemplate, Entry, ListView};
+use gtk4::{gio, glib, CompositeTemplate, Entry, ListBox, ListView};
 use gtk4::{prelude::*, Inhibit};
 
 use super::{utils, TaskData, TaskObject};
@@ -17,7 +17,7 @@ pub struct Window {
     #[template_child]
     pub entry: TemplateChild<Entry>,
     #[template_child]
-    pub tasks_list: TemplateChild<ListView>,
+    pub tasks_list: TemplateChild<ListBox>,
     pub tasks: RefCell<Option<gio::ListStore>>,
     pub settings: OnceCell<Settings>,
 }
@@ -51,7 +51,6 @@ impl ObjectImpl for Window {
         obj.setup_tasks();
         obj.restore_data();
         obj.setup_callbacks();
-        obj.setup_factory();
         obj.setup_actions();
     }
 }
