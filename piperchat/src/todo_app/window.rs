@@ -10,9 +10,9 @@ use gtk4::prelude::*;
 use gtk4::subclass::prelude::*;
 use gtk4::{gio, glib, Application, NoSelection, SignalListItemFactory};
 
-use crate::task_object::TaskObject;
-use crate::task_row::TaskRow;
-use crate::{utils, TaskData, APP_ID};
+use super::task_object::TaskObject;
+use super::task_row::TaskRow;
+use super::{utils, TaskData, APP_ID};
 
 glib::wrapper! {
     pub struct Window(ObjectSubclass<imp::Window>)

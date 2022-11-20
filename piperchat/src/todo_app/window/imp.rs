@@ -8,7 +8,7 @@ use gtk4::subclass::prelude::*;
 use gtk4::{gio, glib, CompositeTemplate, Entry, ListView};
 use gtk4::{prelude::*, Inhibit};
 
-use crate::{utils, TaskData, TaskObject};
+use super::{utils, TaskData, TaskObject};
 
 // Object holding the state
 #[derive(CompositeTemplate, Default)]

@@ -1,7 +1,6 @@
 use gtk4::prelude::*;
 use gtk4::{gio, Application};
-use piperchat::window::Window;
-use piperchat::APP_ID;
+use piperchat::todo_app::{Window, APP_ID};
 
 fn main() {
     // Register and include resources

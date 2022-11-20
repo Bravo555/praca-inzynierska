@@ -7,7 +7,7 @@ use gtk4::subclass::prelude::*;
 use gtk4::{glib, pango};
 use pango::{AttrInt, AttrList};
 
-use crate::task_object::TaskObject;
+use super::task_object::TaskObject;
 
 glib::wrapper! {
     pub struct TaskRow(ObjectSubclass<imp::TaskRow>)
