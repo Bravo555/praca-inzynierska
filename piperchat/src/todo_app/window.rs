@@ -4,13 +4,12 @@ use std::fs::File;
 
 use adw::{prelude::*, ActionRow};
 use gio::Settings;
+use glib::BindingFlags;
 use glib::{clone, Object};
-use gst::glib::BindingFlags;
+use gtk::prelude::*;
+use gtk::subclass::prelude::*;
+use gtk::{gio, glib, Application, NoSelection, SignalListItemFactory};
 use gtk::{Align, CheckButton, CustomFilter, FilterListModel};
-use gtk4 as gtk;
-use gtk4::prelude::*;
-use gtk4::subclass::prelude::*;
-use gtk4::{gio, glib, Application, NoSelection, SignalListItemFactory};
 
 use super::task_object::TaskObject;
 use super::task_row::TaskRow;
@@ -18,7 +17,7 @@ use super::{utils, TaskData, APP_ID};
 
 glib::wrapper! {
     pub struct Window(ObjectSubclass<imp::Window>)
-        @extends gtk::ApplicationWindow, gtk::Window, gtk::Widget,
+        @extends adw::ApplicationWindow, gtk::Window, gtk::Widget,
         @implements gio::ActionGroup, gio::ActionMap, gtk::Accessible, gtk::Buildable,
                     gtk::ConstraintTarget, gtk::Native, gtk::Root, gtk::ShortcutManager;
 }

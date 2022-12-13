@@ -3,10 +3,10 @@ use std::rc::Rc;
 
 use glib::once_cell::sync::Lazy;
 use glib::{ParamSpec, ParamSpecBoolean, ParamSpecString, Value};
-use gtk4 as gtk;
-use gtk4::glib;
-use gtk4::prelude::*;
-use gtk4::subclass::prelude::*;
+use gtk;
+use gtk::glib;
+use gtk::prelude::*;
+use gtk::subclass::prelude::*;
 
 use super::TaskData;
 

@@ -1,7 +1,7 @@
 use glib::Object;
-use gtk4::glib;
+use gtk::glib;
 
-use gtk4 as gtk;
+use gtk;
 
 mod imp;
 

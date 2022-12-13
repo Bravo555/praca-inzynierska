@@ -1,12 +1,14 @@
 use std::cell::RefCell;
 use std::fs::File;
 
+use adw::prelude::*;
+use adw::subclass::prelude::*;
 use gio::Settings;
 use glib::subclass::InitializingObject;
 use gst::glib::once_cell::sync::OnceCell;
-use gtk4::subclass::prelude::*;
-use gtk4::{gio, glib, CompositeTemplate, Entry, ListBox, ListView};
-use gtk4::{prelude::*, Inhibit};
+use gtk::subclass::prelude::*;
+use gtk::{gio, glib, CompositeTemplate, Entry, ListBox, ListView};
+use gtk::{prelude::*, Inhibit};
 
 use super::{utils, TaskData, TaskObject};
 
@@ -28,7 +30,7 @@ impl ObjectSubclass for Window {
     // `NAME` needs to match `class` attribute of template
     const NAME: &'static str = "TodoWindow";
     type Type = super::Window;
-    type ParentType = gtk4::ApplicationWindow;
+    type ParentType = gtk::ApplicationWindow;
 
     fn class_init(klass: &mut Self::Class) {
         klass.bind_template();
@@ -38,6 +40,9 @@ impl ObjectSubclass for Window {
         obj.init_template();
     }
 }
+
+// Trait shared by all adwaita application windows
+impl AdwApplicationWindowImpl for Window {}
 
 // Trait shared by all GObjects
 impl ObjectImpl for Window {

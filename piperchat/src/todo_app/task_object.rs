@@ -2,7 +2,7 @@ mod imp;
 
 use glib::Object;
 use gst::subclass::prelude::*;
-use gtk4::glib;
+use gtk::glib;
 use serde::{Deserialize, Serialize};
 
 glib::wrapper! {

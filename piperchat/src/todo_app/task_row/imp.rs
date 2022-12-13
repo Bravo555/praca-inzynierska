@@ -1,10 +1,10 @@
 use std::cell::RefCell;
 
 use glib::Binding;
-use gtk4 as gtk;
-use gtk4::prelude::*;
-use gtk4::subclass::prelude::*;
-use gtk4::{glib, CheckButton, CompositeTemplate, Label};
+use gtk;
+use gtk::prelude::*;
+use gtk::subclass::prelude::*;
+use gtk::{glib, CheckButton, CompositeTemplate, Label};
 
 // Object holding the state
 #[derive(Default, CompositeTemplate)]

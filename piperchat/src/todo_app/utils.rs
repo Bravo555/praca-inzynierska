@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use gtk4::glib;
+use gtk::glib;
 
 use super::APP_ID;
 

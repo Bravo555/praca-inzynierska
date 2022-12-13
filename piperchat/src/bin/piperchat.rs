@@ -1,10 +1,10 @@
 use adw::prelude::*;
 use gtk::gio;
-use piperchat::todo_app::{Window, APP_ID};
+use piperchat::{window::Window, APP_ID};
 
 fn main() {
     // Register and include resources
-    gio::resources_register_include!("todo_1.gresource").expect("Failed to register resources.");
+    gio::resources_register_include!("piperchat.gresource").expect("Failed to register resources.");
 
     // Create a new application
     let app = adw::Application::builder().application_id(APP_ID).build();

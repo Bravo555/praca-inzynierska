@@ -1,10 +1,10 @@
 mod imp;
 
 use glib::{BindingFlags, Object};
-use gtk4 as gtk;
-use gtk4::prelude::*;
-use gtk4::subclass::prelude::*;
-use gtk4::{glib, pango};
+use gtk;
+use gtk::prelude::*;
+use gtk::subclass::prelude::*;
+use gtk::{glib, pango};
 use pango::{AttrInt, AttrList};
 
 use super::task_object::TaskObject;

@@ -1,5 +1,5 @@
-use gtk4::glib;
-use gtk4::subclass::prelude::*;
+use gtk::glib;
+use gtk::subclass::prelude::*;
 
 // Object holding the state
 #[derive(Default)]
@@ -10,7 +10,7 @@ pub struct CustomButton;
 impl ObjectSubclass for CustomButton {
     const NAME: &'static str = "MyGtkAppCustomButton";
     type Type = super::CustomButton;
-    type ParentType = gtk4::Button;
+    type ParentType = gtk::Button;
 }
 
 // Trait shared by all GObjects

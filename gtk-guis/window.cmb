@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<!DOCTYPE cambalache-project SYSTEM "cambalache-project.dtd">
+<cambalache-project version="0.10.3" target_tk="gtk-4.0">
+  <ui>
+	(1,None,"window.ui","window.ui",None,None,None,None,None,None)
+  </ui>
+  <object>
+	(1,1,"AdwApplicationWindow",None,None,None,None,None,None),
+	(1,2,"GtkBox",None,1,None,None,None,None),
+	(1,3,"AdwHeaderBar",None,2,None,None,None,None),
+	(1,4,"GtkMenuButton",None,3,None,"end",None,None),
+	(1,5,"GtkScrolledWindow",None,2,None,None,None,1),
+	(1,6,"AdwClamp",None,5,None,None,None,None),
+	(1,7,"GtkBox",None,6,None,None,None,None),
+	(1,8,"GtkListBox",None,7,None,None,None,None),
+	(1,9,"GtkListBoxRow",None,8,None,None,None,None),
+	(1,10,"GtkBox",None,9,None,None,None,None),
+	(1,11,"GtkLabel",None,10,None,None,None,None),
+	(1,12,"GtkButton",None,10,None,None,None,1),
+	(1,13,"GtkPopoverMenu",None,None,None,None,None,None)
+  </object>
+  <object_property>
+	(1,1,"GtkWidget","height-request","550",None,None,None,None,None),
+	(1,1,"GtkWidget","width-request","650",None,None,None,None,None),
+	(1,2,"GtkOrientable","orientation","vertical",None,None,None,None,None),
+	(1,4,"GtkMenuButton","icon-name","open-menu-symbolic",None,None,None,None,None),
+	(1,4,"GtkWidget","tooltip-text","Main menu",None,None,None,None,None),
+	(1,5,"GtkScrolledWindow","child",None,None,None,None,None,6),
+	(1,5,"GtkWidget","vexpand","True",None,None,None,None,None),
+	(1,7,"GtkOrientable","orientation","vertical",None,None,None,None,None),
+	(1,7,"GtkWidget","margin-bottom","12",None,None,None,None,None),
+	(1,7,"GtkWidget","margin-end","12",None,None,None,None,None),
+	(1,7,"GtkWidget","margin-start","12",None,None,None,None,None),
+	(1,7,"GtkWidget","margin-top","12",None,None,None,None,None),
+	(1,11,"GtkLabel","ellipsize","middle",None,None,None,None,None),
+	(1,11,"GtkLabel","label","User",None,None,None,None,None),
+	(1,11,"GtkWidget","halign","start",None,None,None,None,None),
+	(1,11,"GtkWidget","hexpand","True",None,None,None,None,None),
+	(1,11,"GtkWidget","valign","baseline",None,None,None,None,None),
+	(1,12,"GtkButton","icon-name","call-start-symbolic",None,None,None,None,None),
+	(1,12,"GtkWidget","halign","end",None,None,None,None,None)
+  </object_property>
+</cambalache-project>
