@@ -1,15 +1,17 @@
 use std::sync::{Arc, Mutex};
 
+use futures_util::{SinkExt, StreamExt};
 use tokio::{
-    io::{AsyncReadExt, AsyncWriteExt},
     net::{TcpListener, TcpStream},
-    sync::mpsc::{self, Sender, UnboundedSender},
+    select,
+    sync::mpsc,
 };
+use tokio_tungstenite::tungstenite::Message;
 
 #[derive(Debug)]
 struct User {
     name: String,
-    tx: UnboundedSender<String>,
+    tx: mpsc::UnboundedSender<String>,
 }
 
 #[tokio::main]
@@ -26,26 +28,28 @@ async fn main() {
     }
 }
 
-async fn process(mut socket: TcpStream, users: Arc<Mutex<Vec<User>>>) {
+async fn process(socket: TcpStream, users: Arc<Mutex<Vec<User>>>) {
+    let ws = tokio_tungstenite::accept_async(socket).await.unwrap();
+    let (mut ws_sink, mut ws_stream) = ws.split();
+
     // receive user name as bytes into socket
-    let mut buffer = vec![0; 1024];
-    socket.read(&mut buffer).await.unwrap();
-
-    // get user name as string up until newline character
-    let newline = buffer
-        .iter()
-        .position(|byte| *byte == 0x0a)
-        .expect("invalid username");
-    buffer.truncate(newline);
-
-    let name = String::from_utf8(buffer).unwrap();
+    let name = match ws_stream.next().await {
+        Some(Ok(Message::Text(name))) => name,
+        _ => {
+            eprintln!("user didn't provide a name");
+            return;
+        }
+    };
+    let name = name.trim();
+    println!("{name} connected.");
 
     // construct user
     let (tx, mut rx) = mpsc::unbounded_channel();
     let user = User {
-        name: name.clone(),
+        name: name.to_owned(),
         tx: tx.clone(),
     };
+
     {
         let mut users = users.lock().unwrap();
         users.push(user);
@@ -54,12 +58,26 @@ async fn process(mut socket: TcpStream, users: Arc<Mutex<Vec<User>>>) {
     broadcast_user_list(users.clone()).await;
 
     loop {
-        let message = rx.recv().await;
-        match message {
-            Some(message) => socket.write_all(message.as_bytes()).await.unwrap(),
-            None => break,
+        select! {
+            message = rx.recv() => {
+                match message {
+                    Some(message) => {
+                        ws_sink.send(message.into()).await.unwrap();
+                    }
+                    None => break,
+                }
+            },
+
+            message = ws_stream.next() => {
+                match message {
+                    Some(Ok(message)) => (),
+                    _ => break
+                }
+            }
         }
     }
+
+    println!("{name} disconnected.");
 
     {
         let mut users = users.lock().unwrap();
