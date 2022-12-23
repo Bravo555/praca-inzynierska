@@ -1,6 +1,6 @@
 use std::sync::{Arc, Mutex};
 
-use futures_util::{SinkExt, StreamExt};
+use futures::{SinkExt, StreamExt};
 use tokio::{
     net::{TcpListener, TcpStream},
     select,
