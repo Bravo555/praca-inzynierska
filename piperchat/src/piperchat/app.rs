@@ -32,6 +32,11 @@ macro_rules! upgrade_weak {
     };
 }
 
+pub enum CallSide {
+    Caller,
+    Callee,
+}
+
 // Strong reference to our application state
 #[derive(Debug, Clone)]
 pub struct App(Arc<AppInner>);
@@ -70,19 +75,21 @@ impl App {
         AppWeak(Arc::downgrade(&self.0))
     }
 
-    pub fn new() -> Result<
+    pub fn new(
+        callside: CallSide,
+    ) -> Result<
         (
             Self,
-            impl Stream<Item = gst::Message>,
-            impl Stream<Item = WsMessage>,
+            gst::bus::BusStream,
+            mpsc::UnboundedReceiver<WsMessage>,
         ),
         anyhow::Error,
     > {
         // Create the GStreamer pipeline
         let pipeline = gst::parse_launch(
             "videotestsrc pattern=ball is-live=true ! vp8enc deadline=1 ! rtpvp8pay pt=96 ! webrtcbin. \
-         audiotestsrc is-live=true ! opusenc ! rtpopuspay pt=97 ! webrtcbin. \
-         webrtcbin name=webrtcbin",
+            audiotestsrc is-live=true ! opusenc ! rtpopuspay pt=97 ! webrtcbin. \
+            webrtcbin name=webrtcbin",
         )?;
 
         // Downcast from gst::Element to gst::Pipeline
@@ -110,6 +117,24 @@ impl App {
             webrtcbin,
             send_msg_tx: Mutex::new(send_ws_msg_tx),
         }));
+
+        if let CallSide::Caller = callside {
+            let app_clone = app.downgrade();
+            app.webrtcbin.connect_closure(
+                "on-negotiation-needed",
+                false,
+                glib::closure!(move |_webrtcbin: &gst::Element| {
+                    let app = upgrade_weak!(app_clone);
+                    if let Err(err) = app.on_negotiation_needed() {
+                        gst::element_error!(
+                            app.pipeline,
+                            gst::LibraryError::Failed,
+                            ("Failed to negotiate: {:?}", err)
+                        );
+                    }
+                }),
+            );
+        }
 
         // Whenever there is a new ICE candidate, send it to the peer
         let app_clone = app.downgrade();
@@ -145,53 +170,26 @@ impl App {
             }
         });
 
-        // // Asynchronously set the pipeline to Playing
-        // app.pipeline.call_async(|pipeline| {
-        //     // If this fails, post an error on the bus so we exit
-        //     if pipeline.set_state(gst::State::Playing).is_err() {
-        //         gst::element_error!(
-        //             pipeline,
-        //             gst::LibraryError::Failed,
-        //             ("Failed to set pipeline to Playing")
-        //         );
-        //     }
-        // });
+        // Asynchronously set the pipeline to Playing
+        app.pipeline.call_async(|pipeline| {
+            // If this fails, post an error on the bus so we exit
+            if pipeline.set_state(gst::State::Playing).is_err() {
+                gst::element_error!(
+                    pipeline,
+                    gst::LibraryError::Failed,
+                    ("Failed to set pipeline to Playing")
+                );
+            }
+        });
 
-        // // Asynchronously set the pipeline to Playing
-        // app.pipeline.call_async(|pipeline| {
-        //     pipeline
-        //         .set_state(gst::State::Playing)
-        //         .expect("Couldn't set pipeline to Playing");
-        // });
-
-        Ok((app, send_gst_msg_rx, send_ws_msg_rx))
-    }
-
-    pub fn set_pipeline_state(&self, state: gst::State) {
-        self.pipeline.call_async(move |pipeline| {
+        // Asynchronously set the pipeline to Playing
+        app.pipeline.call_async(|pipeline| {
             pipeline
-                .set_state(state)
+                .set_state(gst::State::Playing)
                 .expect("Couldn't set pipeline to Playing");
         });
-    }
 
-    // Connect to on-negotiation-needed to handle sending an Offer
-    pub fn set_on_negotiation_needed(&self) {
-        let app_clone = self.downgrade();
-        self.webrtcbin.connect_closure(
-            "on-negotiation-needed",
-            false,
-            glib::closure!(move |_webrtcbin: &gst::Element| {
-                let app = upgrade_weak!(app_clone);
-                if let Err(err) = app.on_negotiation_needed() {
-                    gst::element_error!(
-                        app.pipeline,
-                        gst::LibraryError::Failed,
-                        ("Failed to negotiate: {:?}", err)
-                    );
-                }
-            }),
-        );
+        Ok((app, send_gst_msg_rx, send_ws_msg_rx))
     }
 
     // Handle WebSocket messages, both our own as well as WebSocket protocol messages

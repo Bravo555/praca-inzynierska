@@ -4,13 +4,12 @@ use async_std::task;
 use clap::{arg, Parser};
 use futures::channel::mpsc;
 use futures::{select, AsyncBufReadExt, Sink, SinkExt, Stream, StreamExt};
-use log::{debug, info, warn};
+use log::{debug, error, info, warn};
 use rand::Rng;
-use std::io::{self, Write};
 use tokio_tungstenite::tungstenite::Error;
 
 use piperchat as pc;
-use piperchat::app::App;
+use piperchat::app::{App, CallSide};
 
 type WsMessage = tokio_tungstenite::tungstenite::Message;
 type PcMessage = piperchat::Message;
@@ -23,12 +22,66 @@ struct Args {
     name: String,
 }
 
-#[derive(Debug, Clone, Copy)]
-pub enum AppState {
+#[derive(Debug)]
+enum AppState {
     Connected,
     CallReceived,
     CallRequested,
-    InCall,
+    InCall(Call),
+}
+
+#[derive(Debug)]
+struct Call {
+    handle: task::JoinHandle<anyhow::Result<()>>,
+    app_tx: mpsc::UnboundedSender<pc::WebrtcMsg>,
+}
+
+impl Call {
+    fn new(
+        gst_tx: mpsc::UnboundedSender<WsMessage>,
+        callside: CallSide,
+        exit_tx: mpsc::UnboundedSender<()>,
+    ) -> anyhow::Result<Self> {
+        let (app_tx, app_rx) = mpsc::unbounded();
+        let handle = task::spawn(async move {
+            let (gstreamer, gst_bus, gst_rx) = App::new(callside)?;
+            let mut gst_bus = gst_bus.fuse();
+            let mut gst_rx = gst_rx.fuse();
+            let mut app_rx = app_rx.fuse();
+
+            loop {
+                select! {
+                    gst_msg = gst_bus.select_next_some() => {
+                        debug!("pipeline message: {gst_msg:?}");
+                        if let Err(err) = gstreamer.handle_pipeline_message(&gst_msg) {
+                            error!("{err}");
+                            break;
+                        }
+                    }
+                    // send websocket messages emitted by gst and exit if gstreamer exited
+                    ws_msg = gst_rx.next() => {
+                        match ws_msg {
+                            Some(ws_msg) => gst_tx.unbounded_send(ws_msg)?,
+                            None => break
+                        }
+                    }
+                    ws_msg = app_rx.next() => {
+                        match ws_msg {
+                            Some(ws_msg) => gstreamer.handle_webrtc_message(ws_msg)?,
+                            None => break,
+                        }
+                    }
+                }
+            }
+
+            info!("running drop on gst task");
+            exit_tx.unbounded_send(())?;
+
+            Ok(())
+        });
+
+        Ok(Call { handle, app_tx })
+    }
 }
 
 async fn run(
@@ -40,19 +93,14 @@ async fn run(
     // Fuse the Stream, required for the select macro
     let mut ws_stream = ws_stream.fuse();
 
-    // Create our application state
-    let (app, send_gst_msg_rx, send_ws_msg_rx) = App::new()?;
+    let (gst_tx, mut gst_rx) = mpsc::unbounded::<WsMessage>();
 
-    let mut send_gst_msg_rx = send_gst_msg_rx.fuse();
-    let mut send_ws_msg_rx = send_ws_msg_rx.fuse();
+    let (gst_exit_tx, mut gst_exit_rx) = mpsc::unbounded();
 
     let stdin_buf = BufReader::new(async_std::io::stdin());
     let mut lines = stdin_buf.lines().fuse();
 
     let mut state = AppState::Connected;
-
-    print!("connect_to: ");
-    io::stdout().flush().unwrap();
 
     // And now let's start our message loop
     loop {
@@ -89,9 +137,7 @@ async fn run(
                                 AppState::CallRequested => {
                                     match message {
                                         PcMessage::CallResponse(pc::CallResponseMessage::Accept) => {
-                                            app.set_on_negotiation_needed();
-                                            app.set_pipeline_state(gst::State::Playing);
-                                            state = AppState::InCall;
+                                            state = AppState::InCall(Call::new(gst_tx.clone(), CallSide::Caller, gst_exit_tx.clone())?);
                                         }
                                         PcMessage::CallResponse(pc::CallResponseMessage::Reject) => {
                                             state = AppState::Connected;
@@ -108,14 +154,13 @@ async fn run(
                                     }
                                 },
                                 // peer hungup
-                                AppState::InCall => {
+                                AppState::InCall(ref call) => {
                                     match message {
                                         PcMessage::CallHangup => {
-                                            app.set_pipeline_state(gst::State::Ready);
                                             state = AppState::Connected;
                                         },
                                         PcMessage::Webrtc(webrtc) => {
-                                            app.handle_webrtc_message(webrtc).context("bad websocket message")?;
+                                            call.app_tx.unbounded_send(webrtc).unwrap();
                                         },
                                         _ => {
                                             warn!("received wrong message: {message:?}");
@@ -131,15 +176,8 @@ async fn run(
                     _ => None
                 }
             },
-            // Pass the GStreamer messages to the application control logic
-            gst_msg = send_gst_msg_rx.select_next_some() => {
-                debug!("pipeline message: {gst_msg:?}");
-                app.handle_pipeline_message(&gst_msg)?;
-                None
-            },
-            // Handle WebSocket messages we created asynchronously
-            // to send them out now
-            ws_msg = send_ws_msg_rx.select_next_some() => Some(ws_msg),
+            // Handle WebSocket messages we created asynchronously to send them out now
+            ws_msg = gst_rx.select_next_some() => Some(ws_msg),
 
             // user hit ctrl+c, exitting
             _ = exit_rx.select_next_some() => break,
@@ -151,19 +189,25 @@ async fn run(
                 match state {
                     // extract id to call to
                     AppState::Connected => {
-                        state = AppState::CallRequested;
-                        let id: usize = input.parse()?;
+                        let id: usize = match input.parse() {
+                            Ok(id) => id,
+                            Err(_) => {
+                                error!("invalid id");
+                                continue
+                            }
+                        };
                         println!("connecting to {}", id);
+                        state = AppState::CallRequested;
 
                         // Join the given session
                         let call_message = serde_json::to_string(&PcMessage::Call(pc::CallMessage { peer: id }))?;
                         Some(WsMessage::Text(call_message))
                     },
                     // hangup the call
-                    AppState::InCall | AppState::CallRequested => {
-                        state = AppState::Connected;
+                    AppState::InCall(_) | AppState::CallRequested => {
                         if input == "q" {
                             let disconnect_message = serde_json::to_string(&PcMessage::CallHangup)?;
+                            state = AppState::Connected;
                             Some(WsMessage::Text(disconnect_message))
                         } else {
                             println!("To hangup, press q");
@@ -173,7 +217,7 @@ async fn run(
                     // answer/reject the call
                     AppState::CallReceived => {
                         if input == "y" || input == "" {
-                            state = AppState::InCall;
+                            state = AppState::InCall(Call::new(gst_tx.clone(), CallSide::Callee, gst_exit_tx.clone())?);
                             let accept_message = serde_json::to_string(&PcMessage::CallResponse(pc::CallResponseMessage::Accept))?;
                             Some(WsMessage::Text(accept_message))
                         } else {
@@ -182,6 +226,19 @@ async fn run(
                             Some(WsMessage::Text(reject_message))
                         }
                     },
+                }
+            },
+
+            _ = gst_exit_rx.select_next_some() => {
+                if let AppState::InCall(call) = state {
+                    let output = call.handle.await;
+                    info!("Call terminated. Reason: {output:?}");
+                    state = AppState::Connected;
+                    let disconnect_message = serde_json::to_string(&PcMessage::CallHangup)?;
+                    Some(WsMessage::Text(disconnect_message))
+                } else {
+                    error!("Gstreamer exit received while not in call");
+                    None
                 }
             }
 
