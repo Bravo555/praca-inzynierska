@@ -1,7 +1,9 @@
 mod imp;
 
+use crate::{GuiEvent, VideoPreference};
 use adw::subclass::prelude::*;
 use adw::{prelude::*, ActionRow};
+use async_std::channel::Sender;
 use gtk::glib::{self, clone, Object};
 use gtk::{gio, Align, Button, NoSelection};
 
@@ -15,9 +17,11 @@ glib::wrapper! {
 }
 
 impl Window {
-    pub fn new(app: &adw::Application) -> Self {
+    pub fn new(app: &adw::Application, gui_tx: Sender<GuiEvent>) -> Self {
         // Create new window
-        Object::new(&[("application", app)])
+        let window: Window = Object::new(&[("application", app)]);
+        window.imp().window_data.borrow_mut().gui_tx = Some(gui_tx);
+        window
     }
 
     fn setup_actions(&self) {
@@ -32,10 +36,21 @@ impl Window {
     fn contacts(&self) -> gio::ListStore {
         // Get state
         self.imp()
-            .contacts
+            .window_data
             .borrow()
+            .contacts
             .clone()
             .expect("Could not get current tasks.")
+    }
+
+    fn sender(&self) -> Sender<GuiEvent> {
+        self.imp()
+            .window_data
+            .borrow()
+            .gui_tx
+            .as_ref()
+            .unwrap()
+            .clone()
     }
 
     fn setup_contacts(&self) {
@@ -43,7 +58,7 @@ impl Window {
         let model = gio::ListStore::new(ContactObject::static_type());
 
         // Get state and set model
-        self.imp().contacts.replace(Some(model));
+        self.imp().window_data.borrow_mut().contacts = Some(model);
 
         // Wrap model with selection and pass it to the list view
         let selection_model = NoSelection::new(Some(&self.contacts()));
@@ -62,9 +77,13 @@ impl Window {
             .css_classes(vec!["flat".into()])
             .build();
 
-        call_button.connect_clicked(clone!(@weak contact_object => move |_button| {
-            println!("calling {}", contact_object.property::<String>("name"));
-        }));
+        call_button.connect_clicked(
+            clone!(@weak contact_object, @weak self as window => move |_button| {
+                let id = contact_object.property::<u32>("id");
+                println!("calling {}", contact_object.property::<String>("name"));
+                window.sender().send_blocking(GuiEvent::CallStart(id)).unwrap();
+            }),
+        );
 
         // Create row
         let row = ActionRow::builder().build();
@@ -80,14 +99,37 @@ impl Window {
         row
     }
 
-    pub fn set_contacts(&self, contacts: Vec<(usize, String)>) {
+    pub fn set_contacts(&self, contacts: Vec<(u32, String)>) {
         let contact_list = self.contacts();
         contact_list.remove_all();
         contacts
             .into_iter()
-            .map(|(_id, name)| ContactObject::new(name))
+            .map(|(id, name)| ContactObject::new(id, name))
             .for_each(|contact| {
                 contact_list.append(&contact);
             });
     }
+
+    pub fn accept_call(&self) {
+        self.sender()
+            .send_blocking(GuiEvent::CallAccepted(VideoPreference::Enabled))
+            .unwrap();
+    }
+
+    pub fn accept_call_without_video(&self) {
+        self.sender()
+            .send_blocking(GuiEvent::CallAccepted(VideoPreference::Disabled))
+            .unwrap();
+    }
+
+    pub fn reject_call(&self) {
+        self.sender().send_blocking(GuiEvent::CallRejected).unwrap();
+    }
+}
+
+#[derive(Default)]
+pub struct WindowData {
+    pub contacts: Option<gio::ListStore>,
+    pub username: String,
+    pub gui_tx: Option<Sender<GuiEvent>>,
 }

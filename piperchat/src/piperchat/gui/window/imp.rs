@@ -1,8 +1,13 @@
-use std::cell::RefCell;
+use std::{cell::RefCell, rc::Rc};
 
 use adw::{prelude::*, subclass::prelude::*, EntryRow};
+use async_std::channel::Sender;
 use glib::subclass::InitializingObject;
 use gtk::{gio, glib, CompositeTemplate, Entry, ListBox, Stack};
+
+use crate::GuiEvent;
+
+use super::WindowData;
 
 // Object holding the state
 #[derive(CompositeTemplate, Default)]
@@ -16,8 +21,8 @@ pub struct Window {
     pub name_entry: TemplateChild<EntryRow>,
     #[template_child]
     pub contacts_list: TemplateChild<ListBox>,
-    pub contacts: RefCell<Option<gio::ListStore>>,
-    pub username: RefCell<String>,
+
+    pub window_data: Rc<RefCell<WindowData>>,
 }
 
 // The central trait for subclassing a GObject
@@ -44,7 +49,7 @@ impl Window {
     fn handle_start(&self) {
         let username = self.stack_name_entry.text();
         println!("{}", username.as_str());
-        *self.username.borrow_mut() = String::from(username.as_str());
+        self.window_data.borrow_mut().username = String::from(username.as_str());
         self.name_entry.set_text(username.as_str());
     }
 }

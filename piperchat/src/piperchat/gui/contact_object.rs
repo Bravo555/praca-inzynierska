@@ -8,12 +8,16 @@ glib::wrapper! {
 }
 
 impl ContactObject {
-    pub fn new(name: String) -> Self {
-        Object::builder().property("name", name).build()
+    pub fn new(id: u32, name: String) -> Self {
+        Object::builder()
+            .property("id", id)
+            .property("name", name)
+            .build()
     }
 }
 
 #[derive(Default)]
 pub struct ContactData {
+    pub id: u32,
     pub name: String,
 }

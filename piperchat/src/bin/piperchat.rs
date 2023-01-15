@@ -18,8 +18,10 @@ fn main() {
 }
 
 fn build_ui(app: &adw::Application) {
+    let (tx, rx) = async_std::channel::unbounded();
+
     // Create a new custom window and show it
-    let window = Window::new(app);
+    let window = Window::new(app, tx);
     window.present();
 }
 

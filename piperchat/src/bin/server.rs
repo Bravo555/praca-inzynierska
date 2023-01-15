@@ -28,7 +28,7 @@ enum Command {
 }
 
 struct State {
-    users: HashMap<usize, User>,
+    users: HashMap<u32, User>,
 }
 
 impl State {
@@ -42,7 +42,7 @@ impl State {
 #[derive(Debug)]
 struct User {
     name: String,
-    id: usize,
+    id: u32,
     tx: mpsc::UnboundedSender<Command>,
 }
 
@@ -262,7 +262,7 @@ async fn process(socket: TcpStream, state: Arc<Mutex<State>>) -> color_eyre::Res
     Ok(())
 }
 
-fn broadcast_user_list(users: &HashMap<usize, User>) {
+fn broadcast_user_list(users: &HashMap<u32, User>) {
     for user in users.values() {
         let userlist_message = PcMessage::UserList(pc::UserList {
             users: users

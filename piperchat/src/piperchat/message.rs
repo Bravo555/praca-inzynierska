@@ -16,7 +16,7 @@ pub enum Message {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ConnectMessage {
     pub name: String,
-    pub id: usize,
+    pub id: u32,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -27,12 +27,12 @@ pub enum ConnectResponse {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct UserList {
-    pub users: Vec<(usize, String)>,
+    pub users: Vec<(u32, String)>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct CallMessage {
-    pub peer: usize,
+    pub peer: u32,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
