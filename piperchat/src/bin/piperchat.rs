@@ -1,6 +1,6 @@
 use adw::prelude::*;
 use gtk::gio;
-use piperchat::{window::Window, APP_ID};
+use piperchat::{gui::window::Window, APP_ID};
 
 fn main() {
     // Register and include resources
@@ -23,8 +23,8 @@ fn build_ui(app: &adw::Application) {
     window.present();
 }
 
-fn setup_shortcuts(app: &adw::Application) {
-    app.set_accels_for_action("win.filter('All')", &["<Ctrl>a"]);
-    app.set_accels_for_action("win.filter('Open')", &["<Ctrl>o"]);
-    app.set_accels_for_action("win.filter('Done')", &["<Ctrl>d"]);
+fn setup_shortcuts(_app: &adw::Application) {
+    // app.set_accels_for_action("win.filter('All')", &["<Ctrl>a"]);
+    // app.set_accels_for_action("win.filter('Open')", &["<Ctrl>o"]);
+    // app.set_accels_for_action("win.filter('Done')", &["<Ctrl>d"]);
 }

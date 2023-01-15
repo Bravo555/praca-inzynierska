@@ -1,8 +1,8 @@
-use adw::subclass::prelude::*;
+use std::cell::RefCell;
+
+use adw::{prelude::*, subclass::prelude::*, EntryRow};
 use glib::subclass::InitializingObject;
-use gtk::prelude::*;
-use gtk::subclass::prelude::*;
-use gtk::{glib, Button, CompositeTemplate, Stack};
+use gtk::{gio, glib, CompositeTemplate, Entry, ListBox, Stack};
 
 // Object holding the state
 #[derive(CompositeTemplate, Default)]
@@ -10,6 +10,14 @@ use gtk::{glib, Button, CompositeTemplate, Stack};
 pub struct Window {
     #[template_child]
     pub stack: TemplateChild<Stack>,
+    #[template_child]
+    pub stack_name_entry: TemplateChild<Entry>,
+    #[template_child]
+    pub name_entry: TemplateChild<EntryRow>,
+    #[template_child]
+    pub contacts_list: TemplateChild<ListBox>,
+    pub contacts: RefCell<Option<gio::ListStore>>,
+    pub username: RefCell<String>,
 }
 
 // The central trait for subclassing a GObject
@@ -20,12 +28,24 @@ impl ObjectSubclass for Window {
     type Type = super::Window;
     type ParentType = adw::ApplicationWindow;
 
-    fn class_init(klass: &mut Self::Class) {
-        klass.bind_template();
+    fn class_init(class: &mut Self::Class) {
+        class.bind_template();
+        class.bind_template_callbacks();
     }
 
     fn instance_init(obj: &InitializingObject<Self>) {
         obj.init_template();
+    }
+}
+
+#[gtk::template_callbacks]
+impl Window {
+    #[template_callback]
+    fn handle_start(&self) {
+        let username = self.stack_name_entry.text();
+        println!("{}", username.as_str());
+        *self.username.borrow_mut() = String::from(username.as_str());
+        self.name_entry.set_text(username.as_str());
     }
 }
 
@@ -37,6 +57,7 @@ impl ObjectImpl for Window {
 
         let obj = self.obj();
         obj.setup_actions();
+        obj.setup_contacts();
     }
 }
 

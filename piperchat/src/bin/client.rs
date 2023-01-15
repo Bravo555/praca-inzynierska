@@ -4,12 +4,16 @@ use async_std::task;
 use clap::{arg, Parser};
 use futures::channel::mpsc;
 use futures::{select, AsyncBufReadExt, Sink, SinkExt, Stream, StreamExt};
+use gtk::gio;
+use gtk::prelude::*;
 use log::{debug, error, info, warn};
 use rand::Rng;
 use tokio_tungstenite::tungstenite::Error;
 
 use piperchat as pc;
 use piperchat::app::{App, CallSide};
+use piperchat::gui::window::Window;
+use piperchat::APP_ID;
 
 type WsMessage = tokio_tungstenite::tungstenite::Message;
 type PcMessage = piperchat::Message;
@@ -28,6 +32,11 @@ enum AppState {
     CallReceived,
     CallRequested,
     InCall(Call),
+}
+
+#[derive(Debug)]
+enum NetworkEvent {
+    UserlistReceived(Vec<(usize, String)>),
 }
 
 #[derive(Debug)]
@@ -87,6 +96,7 @@ impl Call {
 async fn run(
     ws: impl Sink<WsMessage, Error = Error> + Stream<Item = Result<WsMessage, Error>>,
     mut exit_rx: mpsc::UnboundedReceiver<()>,
+    gui_tx: async_std::channel::Sender<NetworkEvent>,
 ) -> Result<(), anyhow::Error> {
     // Split the websocket into the Sink and Stream
     let (mut ws_sink, ws_stream) = ws.split();
@@ -118,10 +128,11 @@ async fn run(
 
                         if let PcMessage::UserList(userlist) = message {
                             println!("users:");
-                            for (id, user) in userlist.users {
+                            for (id, user) in &userlist.users {
                                 println!("- {user}: {id}");
                             }
                             println!("");
+                            gui_tx.send_blocking(NetworkEvent::UserlistReceived(userlist.users))?;
                         } else {
                             match state {
                                 AppState::Connected => {
@@ -263,10 +274,72 @@ fn main() -> anyhow::Result<()> {
     })
     .context("Error setting Ctrl-C handler")?;
     pretty_env_logger::init();
-    task::block_on(main_async(exit_rx))
+
+    let (network_tx, network_rx) = async_std::channel::unbounded::<NetworkEvent>();
+
+    // So apparently GTK, when executing multiple instances of an application with the same APP_ID, will take the window
+    // from the newly spawned instance and give it to the previously spawned instance, and then exit the new instance,
+    // so there's only one process controlling all the windows. This might be helpful with saving system resources for
+    // some applications, if they are written in a sane way, but as this project is very cursed and I have no idea how
+    // to write GTK applications, I'm going to have none of that and pretend to GTK that these are separate applications
+    // so that it doesn't hijack the window and prematurely kill the process.
+    let rand_proc_id: String = rand::thread_rng()
+        .sample_iter(rand::distributions::Uniform::new(
+            char::from(97),
+            char::from(122),
+        ))
+        .take(8)
+        .map(char::from)
+        .collect();
+    let app_id = format!("{APP_ID}.{rand_proc_id}");
+    debug!("appid = {app_id}");
+
+    // GTK
+    // Register and include resources
+    gio::resources_register_include!("piperchat.gresource").expect("Failed to register resources.");
+
+    // Create a new application
+    let app = adw::Application::builder().application_id(&app_id).build();
+
+    // Connect signals
+    app.connect_activate(move |app| build_ui(app, network_rx.clone()));
+
+    // network client
+    gtk::glib::MainContext::default().spawn_local(async move {
+        main_async(exit_rx, network_tx).await.unwrap();
+    });
+
+    // Run the application
+    app.run_with_args::<&str>(&[]);
+
+    Ok(())
 }
 
-async fn main_async(exit_rx: mpsc::UnboundedReceiver<()>) -> anyhow::Result<()> {
+fn build_ui(app: &adw::Application, rx: async_std::channel::Receiver<NetworkEvent>) {
+    // Create a new custom window and show it
+    let window = Window::new(&app);
+    window.present();
+
+    let event_handler = async move {
+        while let Ok(event) = rx.recv().await {
+            info!("received event: {event:?}");
+            match event {
+                NetworkEvent::UserlistReceived(userlist) => {
+                    window.set_contacts(userlist);
+                }
+            }
+        }
+    };
+
+    gtk::glib::MainContext::default().spawn_local(event_handler);
+
+    info!("UI built");
+}
+
+async fn main_async(
+    exit_rx: mpsc::UnboundedReceiver<()>,
+    gui_tx: async_std::channel::Sender<NetworkEvent>,
+) -> anyhow::Result<()> {
     // Initialize GStreamer first
     gst::init()?;
 
@@ -306,5 +379,5 @@ async fn main_async(exit_rx: mpsc::UnboundedReceiver<()>) -> anyhow::Result<()> 
     }
 
     // All good, let's run our message loop
-    run(ws, exit_rx).await
+    run(ws, exit_rx, gui_tx).await
 }

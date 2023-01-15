@@ -63,12 +63,14 @@
                             <child>
                               <object class="AdwClamp">
                                 <property name="child">
-                                  <object class="GtkEntry"></object>
+                                  <object class="GtkEntry" id="stack_name_entry">
+                                  </object>
                                 </property>
                               </object>
                             </child>
                             <child>
                               <object class="GtkButton">
+                                <signal name="clicked" handler="handle_start" swapped="true" />
                                 <property name="label" translatable="yes">Proceed</property>
                                 <property name="use-underline">True</property>
                                 <property name="halign">center</property>
@@ -125,7 +127,7 @@
                               <object class="AdwPreferencesGroup">
                                 <property name="title" translatable="yes">My status</property>
                                 <child>
-                                  <object class="AdwEntryRow">
+                                  <object class="AdwEntryRow" id="name_entry">
                                     <property name="title" translatable="yes">User name</property>
                                   </object>
                                 </child>
@@ -162,17 +164,30 @@
                               </object>
                             </child>
                             <child>
-                              <object class="GtkListBox" id="tasks_list">
+                              <object class="GtkListBox" id="contacts_list">
                                 <property name="selection-mode">none</property>
                                 <style>
                                   <class name="boxed-list" />
                                 </style>
                                 <child>
-                                  <object class="AdwActionRow">
-                                    <property name="title">User #1</property>
+                                  <object class="GtkBox">
+                                    <child>
+                                        <object class="GtkLabel" id="username_label">
+                                            <property name="margin-top">12</property>
+                                            <property name="margin-bottom">12</property>
+                                            <property name="margin-start">12</property>
+                                            <property name="margin-end">12</property>
+                                            <property name="halign">start</property>
+                                            <property name="hexpand">true</property>
+                                            <property name="label">User #1</property>
+                                        </object>
+                                    </child>
                                     <child>
                                       <object class="GtkButton">
-                                        <property name="valign">center</property>
+                                        <property name="margin-top">12</property>
+                                        <property name="margin-bottom">12</property>
+                                        <property name="margin-start">12</property>
+                                        <property name="margin-end">12</property>
                                         <property name="icon-name">call-start-symbolic</property>
                                         <style>
                                           <class name="flat" />

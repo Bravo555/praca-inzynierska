@@ -1,6 +1,6 @@
-pub mod window;
-
 pub const APP_ID: &str = "eu.mguzik.piperchat";
+
+pub mod gui;
 
 pub mod message;
 pub use message::*;

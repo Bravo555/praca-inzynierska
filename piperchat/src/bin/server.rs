@@ -263,18 +263,17 @@ async fn process(socket: TcpStream, state: Arc<Mutex<State>>) -> color_eyre::Res
 }
 
 fn broadcast_user_list(users: &HashMap<usize, User>) {
-    let userlist_message = PcMessage::UserList(pc::UserList {
-        users: users
-            .values()
-            .map(|user| (user.id, user.name.clone()))
-            .collect(),
-    });
-
-    // send message to all users
     for user in users.values() {
+        let userlist_message = PcMessage::UserList(pc::UserList {
+            users: users
+                .values()
+                .filter(|u| u.id != user.id)
+                .map(|user| (user.id, user.name.clone()))
+                .collect(),
+        });
         user.tx
             // TODO: fix unnecessary copies
-            .send(Command::SendMessage(userlist_message.clone()))
+            .send(Command::SendMessage(userlist_message))
             .unwrap();
     }
 }

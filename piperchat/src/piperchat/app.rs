@@ -1,12 +1,11 @@
 use anyhow::{anyhow, bail, Context};
-use futures::{channel::mpsc, Stream};
+use futures::channel::mpsc;
 use gst::glib;
 use gst::glib::prelude::*;
 use gst::glib::Error as GError;
 use gst::prelude::*;
 use gst_webrtc::gst_sdp;
 use log::debug;
-use log::warn;
 use std::sync::{Arc, Mutex, Weak};
 
 use crate::piperchat as pc;
