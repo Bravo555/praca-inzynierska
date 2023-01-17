@@ -81,8 +81,7 @@ async fn process(socket: TcpStream, state: Arc<Mutex<State>>) -> color_eyre::Res
         .unwrap()
         .users
         .values()
-        .find(|user| user.name == name)
-        .is_some()
+        .any(|user| user.name == name)
     {
         send_message(
             &mut ws_sink,
@@ -113,7 +112,7 @@ async fn process(socket: TcpStream, state: Arc<Mutex<State>>) -> color_eyre::Res
         let mut state = state.lock().unwrap();
         let users = &mut state.users;
         users.insert(user.id, user);
-        broadcast_user_list(&users);
+        broadcast_user_list(users);
     }
 
     let mut client_state = ClientState::Connected;
@@ -258,7 +257,7 @@ async fn process(socket: TcpStream, state: Arc<Mutex<State>>) -> color_eyre::Res
         let mut state = state.lock().unwrap();
         let users = &mut state.users;
         users.remove(&id);
-        broadcast_user_list(&users);
+        broadcast_user_list(users);
     }
 
     Ok(())

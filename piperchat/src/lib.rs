@@ -147,7 +147,7 @@ pub async fn run(
                             for (id, user) in &userlist.users {
                                 println!("- {user}: {id}");
                             }
-                            println!("");
+                            println!();
                             network_tx.send_blocking(NetworkEvent::UserlistReceived(userlist.users))?;
                         } else {
                             match state {
@@ -242,7 +242,7 @@ pub async fn run(
                     },
                     // answer/reject the call
                     AppState::CallReceived => {
-                        if input == "y" || input == "" {
+                        if input == "y" || input.is_empty() {
                             state = AppState::InCall(Call::new(gst_tx.clone(), CallSide::Callee, gst_exit_tx.clone())?);
                             Some(PcMessage::CallResponse(CallResponseMessage::Accept))
                         } else {
@@ -306,7 +306,7 @@ pub fn build_ui(
     gui_tx: Sender<GuiEvent>,
 ) {
     // Create a new custom window and show it
-    let window = Window::new(&app, gui_tx);
+    let window = Window::new(app, gui_tx);
     window.set_title(Some("Piperchat"));
     window.present();
 

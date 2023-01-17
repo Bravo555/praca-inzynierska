@@ -1,0 +1,5 @@
+- [ ] uzycie imienia wpisywanego przez uzytkownika
+- [ ] naprawianie bugow
+- [ ] dodac av1
+- [ ] lepsze modelowanie polaczenia i stanow
+- [ ] odbieranie polaczenia bez wideo
