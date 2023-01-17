@@ -49,7 +49,7 @@ struct AppWeak(Weak<AppInner>);
 pub struct AppInner {
     pipeline: gst::Pipeline,
     webrtcbin: gst::Element,
-    send_msg_tx: Mutex<mpsc::UnboundedSender<WsMessage>>,
+    send_msg_tx: Mutex<mpsc::UnboundedSender<pc::WebrtcMsg>>,
 }
 
 // To be able to access the App's fields directly
@@ -80,7 +80,7 @@ impl App {
         (
             Self,
             gst::bus::BusStream,
-            mpsc::UnboundedReceiver<WsMessage>,
+            mpsc::UnboundedReceiver<pc::WebrtcMsg>,
         ),
         anyhow::Error,
     > {
@@ -109,7 +109,7 @@ impl App {
         let send_gst_msg_rx = bus.stream();
 
         // Channel for outgoing WebSocket messages from other threads
-        let (send_ws_msg_tx, send_ws_msg_rx) = mpsc::unbounded::<WsMessage>();
+        let (send_ws_msg_tx, send_ws_msg_rx) = mpsc::unbounded::<WebrtcMsg>();
 
         let app = App(Arc::new(AppInner {
             pipeline,
@@ -283,16 +283,15 @@ impl App {
             offer.sdp().as_text().unwrap()
         );
 
-        let message = serde_json::to_string(&PcMessage::Webrtc(WebrtcMsg::Sdp {
+        let message = WebrtcMsg::Sdp {
             type_: "offer".to_string(),
             sdp: offer.sdp().as_text().unwrap(),
-        }))
-        .unwrap();
+        };
 
         self.send_msg_tx
             .lock()
             .unwrap()
-            .unbounded_send(WsMessage::Text(message))
+            .unbounded_send(message)
             .context("Failed to send SDP offer")?;
 
         Ok(())
@@ -336,16 +335,15 @@ impl App {
             answer.sdp().as_text().unwrap()
         );
 
-        let message = serde_json::to_string(&PcMessage::Webrtc(WebrtcMsg::Sdp {
+        let message = WebrtcMsg::Sdp {
             type_: "answer".to_string(),
             sdp: answer.sdp().as_text().unwrap(),
-        }))
-        .unwrap();
+        };
 
         self.send_msg_tx
             .lock()
             .unwrap()
-            .unbounded_send(WsMessage::Text(message))
+            .unbounded_send(message)
             .context("Failed to send SDP answer")?;
 
         Ok(())
@@ -427,16 +425,15 @@ impl App {
     // Asynchronously send ICE candidates to the peer via the WebSocket connection as a JSON
     // message
     fn on_ice_candidate(&self, mlineindex: u32, candidate: &str) -> Result<(), anyhow::Error> {
-        let message = serde_json::to_string(&PcMessage::Webrtc(WebrtcMsg::Ice {
+        let message = WebrtcMsg::Ice {
             candidate: candidate.to_string(),
             sdp_mline_index: mlineindex,
-        }))
-        .unwrap();
+        };
 
         self.send_msg_tx
             .lock()
             .unwrap()
-            .unbounded_send(WsMessage::Text(message))
+            .unbounded_send(message)
             .context("Failed to send ICE candidate")?;
 
         Ok(())

@@ -3,6 +3,7 @@ pub const APP_ID: &str = "eu.mguzik.piperchat";
 pub mod gui;
 
 pub mod message;
+
 use adw::prelude::MessageDialogExtManual;
 use adw::traits::MessageDialogExt;
 use adw::ResponseAppearance;
@@ -62,7 +63,7 @@ struct Call {
 
 impl Call {
     fn new(
-        gst_tx: mpsc::UnboundedSender<WsMessage>,
+        gst_tx: mpsc::UnboundedSender<pc::WebrtcMsg>,
         callside: CallSide,
         exit_tx: mpsc::UnboundedSender<()>,
     ) -> anyhow::Result<Self> {
@@ -116,10 +117,11 @@ pub async fn run(
 ) -> Result<(), anyhow::Error> {
     // Split the websocket into the Sink and Stream
     let (mut ws_sink, ws_stream) = ws.split();
+
     // Fuse the Stream, required for the select macro
     let mut ws_stream = ws_stream.fuse();
 
-    let (gst_tx, mut gst_rx) = mpsc::unbounded::<WsMessage>();
+    let (gst_tx, mut gst_rx) = mpsc::unbounded::<pc::WebrtcMsg>();
 
     let (gst_exit_tx, mut gst_exit_rx) = mpsc::unbounded();
 
@@ -130,7 +132,7 @@ pub async fn run(
 
     // And now let's start our message loop
     loop {
-        let ws_msg = select! {
+        let ws_msg: Option<pc::Message> = select! {
             // Handle the WebSocket messages here
             ws_msg = ws_stream.select_next_some() => {
                 info!("received: {ws_msg:?}");
@@ -205,7 +207,7 @@ pub async fn run(
                 }
             },
             // Handle WebSocket messages we created asynchronously to send them out now
-            ws_msg = gst_rx.select_next_some() => Some(ws_msg),
+            ws_msg = gst_rx.select_next_some() => Some(pc::Message::Webrtc(ws_msg)),
 
             // user hit ctrl+c, exitting
             _ = exit_rx.select_next_some() => break,
@@ -228,15 +230,13 @@ pub async fn run(
                         state = AppState::CallRequested;
 
                         // Join the given session
-                        let call_message = serde_json::to_string(&PcMessage::Call(pc::CallMessage { peer: id }))?;
-                        Some(WsMessage::Text(call_message))
+                        Some(PcMessage::Call(pc::CallMessage { peer: id }))
                     },
                     // hangup the call
                     AppState::InCall(_) | AppState::CallRequested => {
                         if input == "q" {
-                            let disconnect_message = serde_json::to_string(&PcMessage::CallHangup)?;
                             state = AppState::Connected;
-                            Some(WsMessage::Text(disconnect_message))
+                            Some(PcMessage::CallHangup)
                         } else {
                             println!("To hangup, press q");
                             None
@@ -246,12 +246,10 @@ pub async fn run(
                     AppState::CallReceived => {
                         if input == "y" || input == "" {
                             state = AppState::InCall(Call::new(gst_tx.clone(), CallSide::Callee, gst_exit_tx.clone())?);
-                            let accept_message = serde_json::to_string(&PcMessage::CallResponse(pc::CallResponseMessage::Accept))?;
-                            Some(WsMessage::Text(accept_message))
+                            Some(PcMessage::CallResponse(pc::CallResponseMessage::Accept))
                         } else {
                             state = AppState::Connected;
-                            let reject_message = serde_json::to_string(&PcMessage::CallResponse(pc::CallResponseMessage::Reject))?;
-                            Some(WsMessage::Text(reject_message))
+                            Some(PcMessage::CallResponse(pc::CallResponseMessage::Reject))
                         }
                     },
                 }
@@ -264,18 +262,15 @@ pub async fn run(
                         state = AppState::CallRequested;
 
                         // Join the given session
-                        let call_message = serde_json::to_string(&PcMessage::Call(pc::CallMessage { peer: id }))?;
-                        Some(WsMessage::Text(call_message))
+                        Some(PcMessage::Call(pc::CallMessage { peer: id }))
                     },
                     GuiEvent::CallAccepted(video_preference) => {
                         state = AppState::InCall(Call::new(gst_tx.clone(), CallSide::Callee, gst_exit_tx.clone())?);
-                        let accept_message = serde_json::to_string(&PcMessage::CallResponse(pc::CallResponseMessage::Accept))?;
-                        Some(WsMessage::Text(accept_message))
+                        Some(PcMessage::CallResponse(pc::CallResponseMessage::Accept))
                     },
                     GuiEvent::CallRejected => {
                         state = AppState::Connected;
-                        let reject_message = serde_json::to_string(&PcMessage::CallResponse(pc::CallResponseMessage::Reject))?;
-                        Some(WsMessage::Text(reject_message))
+                        Some(PcMessage::CallResponse(pc::CallResponseMessage::Reject))
                     }
                 }
             }
@@ -285,8 +280,7 @@ pub async fn run(
                     let output = call.handle.await;
                     info!("Call terminated. Reason: {output:?}");
                     state = AppState::Connected;
-                    let disconnect_message = serde_json::to_string(&PcMessage::CallHangup)?;
-                    Some(WsMessage::Text(disconnect_message))
+                    Some(PcMessage::CallHangup)
                 } else {
                     error!("Gstreamer exit received while not in call");
                     None
@@ -299,7 +293,8 @@ pub async fn run(
 
         // If there's a message to send out, do so now
         if let Some(ws_msg) = ws_msg {
-            ws_sink.send(ws_msg).await?;
+            let message = WsMessage::Text(serde_json::to_string(&ws_msg)?);
+            ws_sink.send(message).await?;
         }
     }
 
@@ -344,7 +339,7 @@ pub fn build_ui(
                         "accept" => {
                             window.accept_call();
                         }
-                        "accept" => {
+                        "accept_novideo" => {
                             window.accept_call_without_video();
                         }
                         "reject" => {
