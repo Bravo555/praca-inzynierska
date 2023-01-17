@@ -86,7 +86,7 @@ impl App {
     > {
         // Create the GStreamer pipeline
         let pipeline = gst::parse_launch(
-            "videotestsrc pattern=ball is-live=true ! vp8enc deadline=1 ! rtpvp8pay pt=96 ! webrtcbin. \
+            "v4l2src ! videoconvert ! vp8enc deadline=1 ! rtpvp8pay pt=96 ! webrtcbin. \
             audiotestsrc is-live=true ! opusenc ! rtpopuspay pt=97 ! webrtcbin. \
             webrtcbin name=webrtcbin",
         )?;
