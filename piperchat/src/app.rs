@@ -8,11 +8,8 @@ use gst_webrtc::gst_sdp;
 use log::debug;
 use std::sync::{Arc, Mutex, Weak};
 
-use crate::piperchat as pc;
+use crate as pc;
 use crate::WebrtcMsg;
-
-type WsMessage = async_tungstenite::tungstenite::Message;
-type PcMessage = crate::Message;
 
 const STUN_SERVER: &str = "stun://stun.l.google.com:19302";
 const TURN_SERVER: &str = "turn://foo:bar@webrtc.nirbheek.in:3478";
