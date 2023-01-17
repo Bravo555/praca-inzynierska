@@ -5,10 +5,11 @@ use futures::{SinkExt, StreamExt};
 use gtk::prelude::ApplicationExtManual;
 use gtk::{gio, prelude::ApplicationExt};
 use log::{debug, info};
+use rand::Rng;
+
 use piperchat as pc;
 use piperchat::APP_ID;
 use piperchat::{GuiEvent, NetworkEvent};
-use rand::Rng;
 
 type WsMessage = async_tungstenite::tungstenite::Message;
 
@@ -87,10 +88,11 @@ async fn main_async(
     // Say HELLO to the server and see if it replies with HELLO
     let id = rand::thread_rng().gen_range(10..10_000);
     println!("Registering id {} with server", id);
-    let connect_message = serde_json::to_string(&pc::Message::Connect(pc::ConnectMessage {
-        name: args.name.clone(),
-        id,
-    }))?;
+    let connect_message =
+        serde_json::to_string(&pc::Message::Connect(pc::message::ConnectMessage {
+            name: args.name.clone(),
+            id,
+        }))?;
     ws.send(WsMessage::Text(connect_message)).await?;
 
     let msg = ws
@@ -105,8 +107,8 @@ async fn main_async(
     let response: pc::Message = serde_json::from_str(&response)?;
     info!("{:?}", &response);
     match response {
-        pc::Message::ConnectResponse(pc::ConnectResponse::Accept) => (),
-        pc::Message::ConnectResponse(pc::ConnectResponse::Reject(reason)) => {
+        pc::Message::ConnectResponse(pc::message::ConnectResponse::Accept) => (),
+        pc::Message::ConnectResponse(pc::message::ConnectResponse::Reject(reason)) => {
             bail!("server rejected the connection. Reason: {reason}");
         }
         msg => bail!("Expected connection accept, received: {msg:?}"),

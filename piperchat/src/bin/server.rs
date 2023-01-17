@@ -1,7 +1,6 @@
 use color_eyre::eyre::{bail, eyre};
 use futures::{SinkExt, StreamExt};
 use log::{error, info};
-use piperchat as pc;
 use std::{
     collections::HashMap,
     sync::{Arc, Mutex},
@@ -12,6 +11,9 @@ use tokio::{
     sync::mpsc,
 };
 use tokio_tungstenite::tungstenite;
+
+use piperchat as pc;
+
 type WsMessage = tungstenite::Message;
 type PcMessage = piperchat::Message;
 
@@ -84,7 +86,7 @@ async fn process(socket: TcpStream, state: Arc<Mutex<State>>) -> color_eyre::Res
     {
         send_message(
             &mut ws_sink,
-            &PcMessage::ConnectResponse(pc::ConnectResponse::Reject(
+            &PcMessage::ConnectResponse(pc::message::ConnectResponse::Reject(
                 "User with this name already exist. Please pick a different name".to_string(),
             )),
         )
@@ -94,7 +96,7 @@ async fn process(socket: TcpStream, state: Arc<Mutex<State>>) -> color_eyre::Res
 
     send_message(
         &mut ws_sink,
-        &PcMessage::ConnectResponse(pc::ConnectResponse::Accept),
+        &PcMessage::ConnectResponse(pc::message::ConnectResponse::Accept),
     )
     .await?;
     info!("{id} connected.");
@@ -124,12 +126,12 @@ async fn process(socket: TcpStream, state: Arc<Mutex<State>>) -> color_eyre::Res
                         send_message(&mut ws_sink, &message).await?
                     }
                     Some(Command::CallReceived{ channel: peer_sink, name }) => {
-                        let message = PcMessage::CallReceived(pc::CallReceivedMessage { name: name.clone() });
+                        let message = PcMessage::CallReceived(pc::message::CallReceivedMessage { name: name.clone() });
                         send_message(&mut ws_sink, &message).await?;
                         client_state = ClientState::CallReceived(peer_sink);
                     },
                     Some(Command::CallAccepted(peer_sink)) => {
-                        let message = PcMessage::CallResponse(pc::CallResponseMessage::Accept);
+                        let message = PcMessage::CallResponse(pc::message::CallResponseMessage::Accept);
                         send_message(&mut ws_sink, &message).await?;
                         client_state = ClientState::InCall(peer_sink);
                     },
@@ -139,7 +141,7 @@ async fn process(socket: TcpStream, state: Arc<Mutex<State>>) -> color_eyre::Res
                         client_state = ClientState::Connected;
                     }
                     Some(Command::CallRejected) => {
-                        let message = PcMessage::CallResponse(pc::CallResponseMessage::Reject);
+                        let message = PcMessage::CallResponse(pc::message::CallResponseMessage::Reject);
                         send_message(&mut ws_sink, &message).await?;
                         client_state = ClientState::Connected;
                     }
@@ -184,12 +186,12 @@ async fn process(socket: TcpStream, state: Arc<Mutex<State>>) -> color_eyre::Res
                                 // we either accept or reject the call
                                 if let PcMessage::CallResponse(call_response) = message {
                                     match call_response {
-                                        pc::CallResponseMessage::Accept => {
+                                        pc::message::CallResponseMessage::Accept => {
                                             // let the peer know we accepted and transition to incall state
                                             peer_sink.send(Command::CallAccepted(tx.clone()))?;
                                             ClientState::InCall(peer_sink)
                                         },
-                                        pc::CallResponseMessage::Reject => {
+                                        pc::message::CallResponseMessage::Reject => {
                                             peer_sink.send(Command::CallRejected)?;
                                             ClientState::Connected
                                         },
@@ -264,7 +266,7 @@ async fn process(socket: TcpStream, state: Arc<Mutex<State>>) -> color_eyre::Res
 
 fn broadcast_user_list(users: &HashMap<u32, User>) {
     for user in users.values() {
-        let userlist_message = PcMessage::UserList(pc::UserList {
+        let userlist_message = PcMessage::UserList(pc::message::UserList {
             users: users
                 .values()
                 .filter(|u| u.id != user.id)

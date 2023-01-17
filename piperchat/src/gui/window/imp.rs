@@ -1,11 +1,8 @@
 use std::{cell::RefCell, rc::Rc};
 
 use adw::{prelude::*, subclass::prelude::*, EntryRow};
-use async_std::channel::Sender;
 use glib::subclass::InitializingObject;
-use gtk::{gio, glib, CompositeTemplate, Entry, ListBox, Stack};
-
-use crate::GuiEvent;
+use gtk::{glib, CompositeTemplate, Entry, ListBox, Stack};
 
 use super::WindowData;
 

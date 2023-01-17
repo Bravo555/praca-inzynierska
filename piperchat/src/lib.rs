@@ -1,16 +1,15 @@
 pub const APP_ID: &str = "eu.mguzik.piperchat";
 
+pub mod app;
 pub mod gui;
-
 pub mod message;
+
+pub use message::Message;
+use message::*;
 
 use adw::prelude::MessageDialogExtManual;
 use adw::traits::MessageDialogExt;
 use adw::ResponseAppearance;
-pub use message::*;
-
-pub mod app;
-pub use app::*;
 
 use async_std::channel::{Receiver, Sender};
 use async_std::io::BufReader;
@@ -21,12 +20,11 @@ use gtk::prelude::*;
 use log::{debug, error, info, warn};
 use tokio_tungstenite::tungstenite::Error;
 
-use crate as pc;
-use crate::app::{App, CallSide};
-use crate::gui::window::Window;
+use app::{App, CallSide};
+use gui::window::Window;
 
 type WsMessage = tokio_tungstenite::tungstenite::Message;
-type PcMessage = crate::Message;
+type PcMessage = message::Message;
 
 #[derive(Debug)]
 enum AppState {
@@ -58,12 +56,12 @@ pub enum VideoPreference {
 #[derive(Debug)]
 struct Call {
     handle: task::JoinHandle<anyhow::Result<()>>,
-    app_tx: mpsc::UnboundedSender<pc::WebrtcMsg>,
+    app_tx: mpsc::UnboundedSender<message::WebrtcMsg>,
 }
 
 impl Call {
     fn new(
-        gst_tx: mpsc::UnboundedSender<pc::WebrtcMsg>,
+        gst_tx: mpsc::UnboundedSender<message::WebrtcMsg>,
         callside: CallSide,
         exit_tx: mpsc::UnboundedSender<()>,
     ) -> anyhow::Result<Self> {
@@ -121,7 +119,7 @@ pub async fn run(
     // Fuse the Stream, required for the select macro
     let mut ws_stream = ws_stream.fuse();
 
-    let (gst_tx, mut gst_rx) = mpsc::unbounded::<pc::WebrtcMsg>();
+    let (gst_tx, mut gst_rx) = mpsc::unbounded::<message::WebrtcMsg>();
 
     let (gst_exit_tx, mut gst_exit_rx) = mpsc::unbounded();
 
@@ -132,7 +130,7 @@ pub async fn run(
 
     // And now let's start our message loop
     loop {
-        let ws_msg: Option<pc::Message> = select! {
+        let ws_msg: Option<PcMessage> = select! {
             // Handle the WebSocket messages here
             ws_msg = ws_stream.select_next_some() => {
                 info!("received: {ws_msg:?}");
@@ -154,7 +152,7 @@ pub async fn run(
                         } else {
                             match state {
                                 AppState::Connected => {
-                                    if let PcMessage::CallReceived(pc::CallReceivedMessage { name }) = message {
+                                    if let PcMessage::CallReceived(message::CallReceivedMessage { name }) = message {
                                         println!("Receiving a call from {name}");
                                         println!("Accept [Y/n]?");
                                         network_tx.send_blocking(NetworkEvent::CallReceived(name))?;
@@ -166,10 +164,10 @@ pub async fn run(
                                 // peer can accept or reject
                                 AppState::CallRequested => {
                                     match message {
-                                        PcMessage::CallResponse(pc::CallResponseMessage::Accept) => {
+                                        PcMessage::CallResponse(CallResponseMessage::Accept) => {
                                             state = AppState::InCall(Call::new(gst_tx.clone(), CallSide::Caller, gst_exit_tx.clone())?);
                                         }
-                                        PcMessage::CallResponse(pc::CallResponseMessage::Reject) => {
+                                        PcMessage::CallResponse(CallResponseMessage::Reject) => {
                                             state = AppState::Connected;
                                         },
                                         _ => {
@@ -207,7 +205,7 @@ pub async fn run(
                 }
             },
             // Handle WebSocket messages we created asynchronously to send them out now
-            ws_msg = gst_rx.select_next_some() => Some(pc::Message::Webrtc(ws_msg)),
+            ws_msg = gst_rx.select_next_some() => Some(Message::Webrtc(ws_msg)),
 
             // user hit ctrl+c, exitting
             _ = exit_rx.select_next_some() => break,
@@ -230,7 +228,7 @@ pub async fn run(
                         state = AppState::CallRequested;
 
                         // Join the given session
-                        Some(PcMessage::Call(pc::CallMessage { peer: id }))
+                        Some(PcMessage::Call(CallMessage { peer: id }))
                     },
                     // hangup the call
                     AppState::InCall(_) | AppState::CallRequested => {
@@ -246,10 +244,10 @@ pub async fn run(
                     AppState::CallReceived => {
                         if input == "y" || input == "" {
                             state = AppState::InCall(Call::new(gst_tx.clone(), CallSide::Callee, gst_exit_tx.clone())?);
-                            Some(PcMessage::CallResponse(pc::CallResponseMessage::Accept))
+                            Some(PcMessage::CallResponse(CallResponseMessage::Accept))
                         } else {
                             state = AppState::Connected;
-                            Some(PcMessage::CallResponse(pc::CallResponseMessage::Reject))
+                            Some(PcMessage::CallResponse(CallResponseMessage::Reject))
                         }
                     },
                 }
@@ -262,15 +260,15 @@ pub async fn run(
                         state = AppState::CallRequested;
 
                         // Join the given session
-                        Some(PcMessage::Call(pc::CallMessage { peer: id }))
+                        Some(PcMessage::Call(CallMessage { peer: id }))
                     },
                     GuiEvent::CallAccepted(video_preference) => {
                         state = AppState::InCall(Call::new(gst_tx.clone(), CallSide::Callee, gst_exit_tx.clone())?);
-                        Some(PcMessage::CallResponse(pc::CallResponseMessage::Accept))
+                        Some(PcMessage::CallResponse(CallResponseMessage::Accept))
                     },
                     GuiEvent::CallRejected => {
                         state = AppState::Connected;
-                        Some(PcMessage::CallResponse(pc::CallResponseMessage::Reject))
+                        Some(PcMessage::CallResponse(CallResponseMessage::Reject))
                     }
                 }
             }
