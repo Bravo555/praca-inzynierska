@@ -4,12 +4,13 @@ pub mod app;
 pub mod gui;
 pub mod message;
 
+use gtk::glib::MainContext;
 pub use message::Message;
 use message::*;
 
 use adw::prelude::MessageDialogExtManual;
 use adw::traits::MessageDialogExt;
-use adw::ResponseAppearance;
+use adw::{MessageDialog, ResponseAppearance};
 
 use async_std::channel::{Receiver, Sender};
 use async_std::io::BufReader;
@@ -29,8 +30,8 @@ type PcMessage = message::Message;
 #[derive(Debug)]
 enum AppState {
     Connected,
-    CallReceived,
-    CallRequested,
+    CallReceived(String),
+    CallRequested(String),
     InCall(Call),
 }
 
@@ -38,13 +39,26 @@ enum AppState {
 pub enum NetworkEvent {
     UserlistReceived(Vec<(u32, String)>),
     CallReceived(String),
+    CallAccepted,
+    CallRejected(String),
+    CallHangup(String),
 }
 
 #[derive(Debug)]
 pub enum GuiEvent {
-    CallStart(u32),
+    CallStart(u32, String),
     CallAccepted(VideoPreference),
     CallRejected,
+    NameEntered(String),
+}
+
+#[derive(Debug)]
+pub enum NetworkCommand {
+    CallStart(u32, String),
+    CallAccept(VideoPreference),
+    CallReject,
+    CallHangup,
+    Connect(String),
 }
 
 #[derive(Debug)]
@@ -111,7 +125,7 @@ pub async fn run(
     ws: impl Sink<WsMessage, Error = Error> + Stream<Item = Result<WsMessage, Error>>,
     mut exit_rx: mpsc::UnboundedReceiver<()>,
     network_tx: async_std::channel::Sender<NetworkEvent>,
-    mut gui_rx: async_std::channel::Receiver<GuiEvent>,
+    mut network_command_rx: async_std::channel::Receiver<NetworkCommand>,
 ) -> Result<(), anyhow::Error> {
     // Split the websocket into the Sink and Stream
     let (mut ws_sink, ws_stream) = ws.split();
@@ -155,19 +169,21 @@ pub async fn run(
                                     if let PcMessage::CallReceived(message::CallReceivedMessage { name }) = message {
                                         println!("Receiving a call from {name}");
                                         println!("Accept [Y/n]?");
-                                        network_tx.send_blocking(NetworkEvent::CallReceived(name))?;
-                                        state = AppState::CallReceived;
+                                        network_tx.send_blocking(NetworkEvent::CallReceived(name.clone()))?;
+                                        state = AppState::CallReceived(name);
                                     } else {
                                         warn!("Received another call while call pending");
                                     }
                                 },
                                 // peer can accept or reject
-                                AppState::CallRequested => {
+                                AppState::CallRequested(ref name) => {
                                     match message {
                                         PcMessage::CallResponse(CallResponseMessage::Accept) => {
+                                            network_tx.send_blocking(NetworkEvent::CallAccepted)?;
                                             state = AppState::InCall(Call::new(gst_tx.clone(), CallSide::Caller, gst_exit_tx.clone())?);
                                         }
                                         PcMessage::CallResponse(CallResponseMessage::Reject) => {
+                                            network_tx.send_blocking(NetworkEvent::CallRejected(name.clone()))?;
                                             state = AppState::Connected;
                                         },
                                         _ => {
@@ -176,8 +192,9 @@ pub async fn run(
                                     }
                                 },
                                 // peer hung up
-                                AppState::CallReceived => {
+                                AppState::CallReceived(ref name) => {
                                     if let PcMessage::CallHangup = message {
+                                        network_tx.send_blocking(NetworkEvent::CallHangup(name.clone()))?;
                                         state = AppState::Connected;
                                     }
                                 },
@@ -211,65 +228,70 @@ pub async fn run(
             _ = exit_rx.select_next_some() => break,
 
             // input from stdin
-            stdin_line = lines.select_next_some() => {
-                let input = stdin_line?;
-                let input = input.trim();
-                match state {
-                    // extract id to call to
-                    AppState::Connected => {
-                        let id: u32 = match input.parse() {
-                            Ok(id) => id,
-                            Err(_) => {
-                                error!("invalid id");
-                                continue
-                            }
-                        };
+            // stdin_line = lines.select_next_some() => {
+            //     let input = stdin_line?;
+            //     let input = input.trim();
+            //     match state {
+            //         // extract id to call to
+            //         AppState::Connected => {
+            //             let id: u32 = match input.parse() {
+            //                 Ok(id) => id,
+            //                 Err(_) => {
+            //                     error!("invalid id");
+            //                     continue
+            //                 }
+            //             };
+            //             println!("connecting to {}", id);
+            //             state = AppState::CallRequested;
+
+            //             // Join the given session
+            //             Some(PcMessage::Call(CallMessage { peer: id }))
+            //         },
+            //         // hangup the call
+            //         AppState::InCall(_) | AppState::CallRequested => {
+            //             if input == "q" {
+            //                 state = AppState::Connected;
+            //                 Some(PcMessage::CallHangup)
+            //             } else {
+            //                 println!("To hangup, press q");
+            //                 None
+            //             }
+            //         },
+            //         // answer/reject the call
+            //         AppState::CallReceived => {
+            //             if input == "y" || input.is_empty() {
+            //                 state = AppState::InCall(Call::new(gst_tx.clone(), CallSide::Callee, gst_exit_tx.clone())?);
+            //                 Some(PcMessage::CallResponse(CallResponseMessage::Accept))
+            //             } else {
+            //                 state = AppState::Connected;
+            //                 Some(PcMessage::CallResponse(CallResponseMessage::Reject))
+            //             }
+            //         },
+            //     }
+            // },
+
+            command = network_command_rx.select_next_some() => {
+                match command {
+                    NetworkCommand::CallStart(id, name) => {
                         println!("connecting to {}", id);
-                        state = AppState::CallRequested;
+                        state = AppState::CallRequested(name);
 
                         // Join the given session
                         Some(PcMessage::Call(CallMessage { peer: id }))
                     },
-                    // hangup the call
-                    AppState::InCall(_) | AppState::CallRequested => {
-                        if input == "q" {
-                            state = AppState::Connected;
-                            Some(PcMessage::CallHangup)
-                        } else {
-                            println!("To hangup, press q");
-                            None
-                        }
-                    },
-                    // answer/reject the call
-                    AppState::CallReceived => {
-                        if input == "y" || input.is_empty() {
-                            state = AppState::InCall(Call::new(gst_tx.clone(), CallSide::Callee, gst_exit_tx.clone())?);
-                            Some(PcMessage::CallResponse(CallResponseMessage::Accept))
-                        } else {
-                            state = AppState::Connected;
-                            Some(PcMessage::CallResponse(CallResponseMessage::Reject))
-                        }
-                    },
-                }
-            },
-
-            gui_msg = gui_rx.select_next_some() => {
-                match gui_msg {
-                    GuiEvent::CallStart(id) => {
-                        println!("connecting to {}", id);
-                        state = AppState::CallRequested;
-
-                        // Join the given session
-                        Some(PcMessage::Call(CallMessage { peer: id }))
-                    },
-                    GuiEvent::CallAccepted(video_preference) => {
+                    NetworkCommand::CallAccept(video_preference) => {
                         state = AppState::InCall(Call::new(gst_tx.clone(), CallSide::Callee, gst_exit_tx.clone())?);
                         Some(PcMessage::CallResponse(CallResponseMessage::Accept))
                     },
-                    GuiEvent::CallRejected => {
+                    NetworkCommand::CallReject => {
                         state = AppState::Connected;
                         Some(PcMessage::CallResponse(CallResponseMessage::Reject))
-                    }
+                    },
+                    NetworkCommand::CallHangup => {
+                        state = AppState::Connected;
+                        Some(PcMessage::CallHangup)
+                    },
+                    _ => {None}
                 }
             }
 
@@ -291,6 +313,7 @@ pub async fn run(
 
         // If there's a message to send out, do so now
         if let Some(ws_msg) = ws_msg {
+            info!("sending: {ws_msg:?}");
             let message = WsMessage::Text(serde_json::to_string(&ws_msg)?);
             ws_sink.send(message).await?;
         }
@@ -303,54 +326,182 @@ pub async fn run(
 pub fn build_ui(
     app: &adw::Application,
     network_rx: Receiver<NetworkEvent>,
-    gui_tx: Sender<GuiEvent>,
+    network_command_tx: Sender<NetworkCommand>,
 ) {
+    let (gui_tx, gui_rx) = async_std::channel::unbounded::<GuiEvent>();
+
     // Create a new custom window and show it
     let window = Window::new(app, gui_tx);
     window.set_title(Some("Piperchat"));
     window.present();
 
-    let event_handler = async move {
-        while let Ok(event) = network_rx.recv().await {
-            info!("received event: {event:?}");
-            match event {
-                NetworkEvent::UserlistReceived(userlist) => {
-                    window.set_contacts(userlist);
-                }
-                NetworkEvent::CallReceived(username) => {
-                    // display some dialog where user can accept/reject the message
-                    let dialog = adw::MessageDialog::new(
-                        Some(&window),
-                        Some(&format!("Incoming call from {username}")),
-                        Some(&format!("Receiving a call from {username}. Do you want to accept or reject this call?")),
-                    );
-                    dialog.add_responses(&[
-                        ("accept", "Accept"),
-                        ("accept_novideo", "Accept without video"),
-                        ("reject", "Reject"),
-                    ]);
-                    dialog.set_response_appearance("accept", ResponseAppearance::Suggested);
-                    dialog.set_response_appearance("reject", ResponseAppearance::Destructive);
-                    let response = dialog.run_future().await;
-                    println!("{response}");
-                    match response.as_str() {
-                        "accept" => {
-                            window.accept_call();
+    let handler = EventHandler {
+        gui_rx,
+        network_rx,
+        network_command_tx,
+        window,
+        current_dialog: None,
+    };
+    handler.start();
+
+    info!("UI built");
+}
+
+struct EventHandler {
+    gui_rx: Receiver<GuiEvent>,
+    network_rx: Receiver<NetworkEvent>,
+    network_command_tx: Sender<NetworkCommand>,
+    current_dialog: Option<MessageDialog>,
+    window: Window,
+}
+
+impl EventHandler {
+    fn start(mut self) {
+        let event_handler = async move {
+            loop {
+                select! {
+                    network_event = self.network_rx.next() => {
+                        match network_event {
+                            Some(event) => self.handle_network_event(event).await,
+                            None => break
                         }
-                        "accept_novideo" => {
-                            window.accept_call_without_video();
+                    },
+                    gui_event = self.gui_rx.next() => {
+                        match gui_event {
+                            Some(event) => self.handle_gui_event(event).await,
+                            None => break
                         }
-                        "reject" => {
-                            window.reject_call();
-                        }
-                        _ => unreachable!("dialog response not possible"),
                     }
                 }
             }
+        };
+
+        MainContext::default().spawn_local(event_handler);
+    }
+    async fn handle_network_event(&mut self, event: NetworkEvent) {
+        info!("received network event: {event:?}");
+        match event {
+            NetworkEvent::UserlistReceived(userlist) => {
+                self.window.set_contacts(userlist);
+            }
+            NetworkEvent::CallReceived(name) => {
+                // display a dialog where user can accept/reject the message
+                let dialog = adw::MessageDialog::new(
+                    Some(&self.window),
+                    Some(&format!("Incoming call from {name}")),
+                    Some(&format!(
+                        "Receiving a call from {name}. Do you want to accept or reject this call?"
+                    )),
+                );
+                dialog.add_responses(&[
+                    ("accept", "Accept"),
+                    ("accept_novideo", "Accept without video"),
+                    ("reject", "Reject"),
+                ]);
+                dialog.set_response_appearance("accept", ResponseAppearance::Suggested);
+                dialog.set_response_appearance("reject", ResponseAppearance::Destructive);
+                let window = self.window.clone();
+
+                dialog.run_async(None, move |_obj, response| match response {
+                    "accept" => {
+                        window.accept_call();
+                    }
+                    "accept_novideo" => {
+                        window.accept_call_without_video();
+                    }
+                    "reject" => {
+                        window.reject_call();
+                    }
+                    // here dialog got closed from outside, that means sender hung up
+                    _ => {
+                        let dialog = adw::MessageDialog::new(
+                            Some(&window),
+                            Some(&format!("Caller hung up.")),
+                            Some(&format!(
+                                "The call from the user {name} terminated. Caller hung up."
+                            )),
+                        );
+
+                        dialog.add_responses(&[("ok", "OK")]);
+                        dialog.run_async(None, move |obj, response| {});
+                    }
+                });
+                self.current_dialog = Some(dialog);
+            }
+            NetworkEvent::CallHangup(name) => {
+                info!("Received hangup");
+                if let Some(dialog) = self.current_dialog.take() {
+                    dialog.close();
+                }
+            }
+            NetworkEvent::CallAccepted => {
+                if let Some(dialog) = self.current_dialog.take() {
+                    info!("CLOSING");
+                    dialog.close();
+                }
+            }
+            NetworkEvent::CallRejected(name) => {
+                if let Some(dialog) = self.current_dialog.take() {
+                    info!("CLOSING");
+                    dialog.close();
+                }
+
+                let dialog = adw::MessageDialog::new(
+                    Some(&self.window),
+                    Some(&format!("Call rejected")),
+                    Some(&format!("Recepient {name} rejected the call.")),
+                );
+
+                dialog.add_responses(&[("ok", "OK")]);
+                dialog.run_async(None, move |obj, response| {});
+            }
         }
-    };
+    }
 
-    gtk::glib::MainContext::default().spawn_local(event_handler);
+    async fn handle_gui_event(&mut self, event: GuiEvent) {
+        match event {
+            GuiEvent::CallStart(id, name) => {
+                let dialog = adw::MessageDialog::new(
+                    Some(&self.window),
+                    Some(&format!("Calling {name}")),
+                    Some(&format!(
+                    "Waiting for a response from {name}. You can wait for the answer or hangup."
+                )),
+                );
+                dialog.add_responses(&[("hangup", "Hang up")]);
+                dialog.set_response_appearance("hangup", ResponseAppearance::Destructive);
 
-    info!("UI built");
+                let network_command_tx = self.network_command_tx.clone();
+                dialog.run_async(None, move |obj, response| {
+                    if response == "hangup" {
+                        info!("SENDING HANGUP");
+                        network_command_tx
+                            .send_blocking(NetworkCommand::CallHangup)
+                            .unwrap();
+                    }
+                });
+                self.current_dialog = Some(dialog);
+
+                self.network_command_tx
+                    .send_blocking(NetworkCommand::CallStart(id, name))
+                    .unwrap();
+            }
+            GuiEvent::CallAccepted(preference) => {
+                self.network_command_tx
+                    .send_blocking(NetworkCommand::CallAccept(preference))
+                    .unwrap();
+            }
+
+            GuiEvent::CallRejected => {
+                self.network_command_tx
+                    .send_blocking(NetworkCommand::CallReject)
+                    .unwrap();
+            }
+            GuiEvent::NameEntered(name) => {
+                self.network_command_tx
+                    .send_blocking(NetworkCommand::Connect(name))
+                    .unwrap();
+            }
+        }
+    }
 }

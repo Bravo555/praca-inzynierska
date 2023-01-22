@@ -2,8 +2,9 @@ mod imp;
 
 use crate::{GuiEvent, VideoPreference};
 use adw::subclass::prelude::*;
-use adw::{prelude::*, ActionRow};
+use adw::{prelude::*, ActionRow, ResponseAppearance};
 use async_std::channel::Sender;
+use futures::{select, FutureExt};
 use gtk::glib::{self, clone, Object};
 use gtk::{gio, Align, Button, NoSelection};
 
@@ -80,8 +81,10 @@ impl Window {
         call_button.connect_clicked(
             clone!(@weak contact_object, @weak self as window => move |_button| {
                 let id = contact_object.property::<u32>("id");
-                println!("calling {}", contact_object.property::<String>("name"));
-                window.sender().send_blocking(GuiEvent::CallStart(id)).unwrap();
+                let name = contact_object.property::<String>("name");
+                println!("calling {name}");
+                window.sender().send_blocking(GuiEvent::CallStart(id, name)).unwrap();
+
             }),
         );
 

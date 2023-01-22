@@ -1,4 +1,5 @@
-- [ ] uzycie imienia wpisywanego przez uzytkownika
+- [x] uzycie imienia wpisywanego przez uzytkownika
+- [ ] dialog dla callera z oczekiwaniem za odebranie i możliwością rozłączenia się
 - [ ] naprawianie bugow
 - [ ] dodac av1
 - [ ] lepsze modelowanie polaczenia i stanow

@@ -4,6 +4,8 @@ use adw::{prelude::*, subclass::prelude::*, EntryRow};
 use glib::subclass::InitializingObject;
 use gtk::{glib, CompositeTemplate, Entry, ListBox, Stack};
 
+use crate::GuiEvent;
+
 use super::WindowData;
 
 // Object holding the state
@@ -44,9 +46,15 @@ impl ObjectSubclass for Window {
 impl Window {
     #[template_callback]
     fn handle_start(&self) {
-        let username = self.stack_name_entry.text();
-        println!("{}", username.as_str());
-        self.window_data.borrow_mut().username = String::from(username.as_str());
+        let username = self.stack_name_entry.text().to_string();
+        self.window_data
+            .borrow_mut()
+            .gui_tx
+            .as_mut()
+            .unwrap()
+            .send_blocking(GuiEvent::NameEntered(username.clone()))
+            .unwrap();
+        self.window_data.borrow_mut().username = username.clone();
         self.name_entry.set_text(username.as_str());
     }
 }

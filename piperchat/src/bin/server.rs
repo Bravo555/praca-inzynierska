@@ -149,10 +149,6 @@ async fn process(socket: TcpStream, state: Arc<Mutex<State>>) -> color_eyre::Res
             },
 
             // message from user socket
-            // if not in session:
-            // - SESSION_OK to create session
-            // if in session:
-            //   just reroute everything to session peer
             message = ws_stream.next() => {
                 match message {
                     Some(Ok(WsMessage::Text(message))) => {
@@ -204,7 +200,10 @@ async fn process(socket: TcpStream, state: Arc<Mutex<State>>) -> color_eyre::Res
                                 // At this point we need to listen for peer to accept or reject the call
                                 // The only thing we can do is hang up
                                 match message {
-                                    PcMessage::CallHangup => ClientState::Connected,
+                                    PcMessage::CallHangup => {
+                                        peer.send(Command::PeerHungup)?;
+                                        ClientState::Connected
+                                    }
                                     _ => {
                                         error!("Wrong message from user {id}: {message:?}");
                                         ClientState::CallRequested(peer)
@@ -286,7 +285,7 @@ where
     let message = if let Some(Ok(WsMessage::Text(payload))) = ws_stream.next().await {
         payload
     } else {
-        bail!("Received WebSocket Frame is not a text frame");
+        bail!("Received WebSocket Frame is not a text frame")
     };
     let message: PcMessage = serde_json::from_str(&message)?;
     info!("received: {message:?}");

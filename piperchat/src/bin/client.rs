@@ -5,11 +5,12 @@ use futures::{SinkExt, StreamExt};
 use gtk::prelude::ApplicationExtManual;
 use gtk::{gio, prelude::ApplicationExt};
 use log::{debug, info};
+use pc::NetworkCommand;
 use rand::Rng;
 
 use piperchat as pc;
+use piperchat::NetworkEvent;
 use piperchat::APP_ID;
-use piperchat::{GuiEvent, NetworkEvent};
 
 type WsMessage = async_tungstenite::tungstenite::Message;
 
@@ -17,8 +18,6 @@ type WsMessage = async_tungstenite::tungstenite::Message;
 struct Args {
     #[arg(short, long, default_value = "ws://localhost:2137")]
     server: String,
-    #[arg(short, long)]
-    name: String,
 }
 
 fn main() -> anyhow::Result<()> {
@@ -30,7 +29,8 @@ fn main() -> anyhow::Result<()> {
     pretty_env_logger::init();
 
     let (network_tx, network_rx) = async_std::channel::unbounded::<NetworkEvent>();
-    let (gui_tx, gui_rx) = async_std::channel::unbounded::<GuiEvent>();
+    let (network_command_tx, network_command_rx) =
+        async_std::channel::unbounded::<NetworkCommand>();
 
     // So apparently GTK, when executing multiple instances of an application with the same APP_ID, will take the window
     // from the newly spawned instance and give it to the previously spawned instance, and then exit the new instance,
@@ -57,11 +57,15 @@ fn main() -> anyhow::Result<()> {
     let app = adw::Application::builder().application_id(&app_id).build();
 
     // Connect signals
-    app.connect_activate(move |app| pc::build_ui(app, network_rx.clone(), gui_tx.clone()));
+    app.connect_activate(move |app| {
+        pc::build_ui(app, network_rx.clone(), network_command_tx.clone())
+    });
 
     // network client
     gtk::glib::MainContext::default().spawn_local(async move {
-        main_async(exit_rx, network_tx, gui_rx).await.unwrap();
+        main_async(exit_rx, network_tx, network_command_rx)
+            .await
+            .unwrap();
     });
 
     // Run the application
@@ -73,12 +77,18 @@ fn main() -> anyhow::Result<()> {
 async fn main_async(
     exit_rx: mpsc::UnboundedReceiver<()>,
     network_tx: async_std::channel::Sender<NetworkEvent>,
-    gui_rx: async_std::channel::Receiver<GuiEvent>,
+    command_rx: async_std::channel::Receiver<NetworkCommand>,
 ) -> anyhow::Result<()> {
     // Initialize GStreamer first
     gst::init()?;
 
     let args = Args::parse();
+
+    let name = if let NetworkCommand::Connect(name) = command_rx.recv().await? {
+        name
+    } else {
+        bail!("ERROR: didn't receive name from GUI");
+    };
 
     // Connect to the given server
     let (mut ws, _) = async_tungstenite::async_std::connect_async(&args.server).await?;
@@ -90,7 +100,7 @@ async fn main_async(
     println!("Registering id {} with server", id);
     let connect_message =
         serde_json::to_string(&pc::Message::Connect(pc::message::ConnectMessage {
-            name: args.name.clone(),
+            name: name,
             id,
         }))?;
     ws.send(WsMessage::Text(connect_message)).await?;
@@ -115,5 +125,5 @@ async fn main_async(
     }
 
     // All good, let's run our message loop
-    pc::run(ws, exit_rx, network_tx, gui_rx).await
+    pc::run(ws, exit_rx, network_tx, command_rx).await
 }

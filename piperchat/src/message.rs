@@ -46,7 +46,6 @@ pub struct CallReceivedMessage {
     pub name: String,
 }
 
-// JSON messages we communicate with
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "lowercase")]
 pub enum WebrtcMsg {
