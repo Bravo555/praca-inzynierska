@@ -77,7 +77,10 @@ style=ieee
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Pakiet do wstawiania fragmentów kodu
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{color}
 \usepackage{listings}
+\usepackage{minted}
+\setminted{fontsize=\footnotesize}
 \usepackage{xpatch}
 \makeatletter
 \xpatchcmd\l@lstlisting{1.5em}{0em}{}{}
@@ -801,7 +804,7 @@ Specjalność: & {\bfseries \@specjalnosc}\\
 \wydzial{Wydział Informatyki i Telekomunikacji}
 \kierunek{Informatyka techniczna}
 \specjalnosc{Grafika i Systemy Multimedialne}
-\promotor{dr inż. Marek Woda}
+\promotor{dr inż. Marek Woda (K30W04ND03)}
 \date{WROCŁAW, 2022}
 
 % Ustawienie odstępu od góry w nienumerowanych rozdziałach oraz wykazach:
@@ -877,33 +880,10 @@ Specjalność: & {\bfseries \@specjalnosc}\\
 
 \include{rozdzial01}
 \include{rozdzial02}
-\include{rozdzial03}
-\include{rozdzial04}
-
-\chapter{Mechanizmy kompresji wideo}
-\section{Koncepty kompresji}
-\section{Kontenery}
-\section{Kodeki}
-\subsection{H.264}
-\subsection{H.265}
-\subsection{VP9}
-\subsection{AV1}
-
-\chapter{Architektura projektu Piperchat}
-\section{Serwer}
-\section{Klient}
-
-
-\chapter{Aplikacja desktopowa w języku Rust}
-\section{GUI framework}
-\section{ffmpeg}
-
-% \include{rozdzial01}
-% \include{rozdzial02}
-% \include{rozdzial03}
-% \include{rozdzial04}
-% \include{rozdzial05}
-% \include{rozdzial06}
+\include{technologie.tex}
+\include{aplikacja_webowa}
+\include{implementacja}
+\include{podsumowanie}
 
 % \bibliographystyle{plalpha}
 % \bibliographystyle{plabbrv}

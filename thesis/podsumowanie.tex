@@ -1,0 +1,53 @@
+\chapter{Podsumowanie}
+\label{chap:podsumowanie}
+Podsumowanie jest miejscem, w którym należy zamieścić syntetyczny opis tego, o czym jest dokument. W
+szczególności w pracach dyplomowych w podsumowaniu powinno znaleźć się jawnie podane stwierdzenie
+dotyczące stopnia realizacji celu. Czyli powinny pojawić się w niej akapity ze zdaniami typu:
+,,Podczas realizacji pracy udało się zrealizować wszystkie postawione cele''. Ponadto powinna
+pojawić się dyskusja na temat napotkanych przeszkód i sposobów ich pokonania, perspektyw dalszego
+rozwoju, możliwych zastosowań wyników pracy itp.
+
+\section{Realizacja celu pracy}
+
+Zadanie utworzenia komunikatora prezentującego reguły prowadzenia połączeń peer-to-peer zostały
+zrealizowane.
+
+\section{Wnioski}
+
+Wykonany komunikator nie jest jednak gotowy do wykorzystania w środowisku produkcyjnym
+ponieważ operuje on na zasadzie globalnej widoczności wszystkich połączonych użytkowników, którzy
+identyfikowani są tylko po nazwie, którą każdy z użytkowników może wybrać dowolnie podczas
+dołączania, o ile nie jest ona już zajęta.
+
+Mimo tego, komunikator obrazuje jak łatwe może być tworzenie multimedialnych aplikacji
+komunikujących się w architekturze peer-to-peer. Gwarancje bezpieczeństwa języka Rust sprawiają że
+deweloper może zapomnieć o segfaultach i memory corruption, a ekspresywny system typów sprawia że
+powstały kod wygląda jak kod napisany w języku wysokopoziomowym takim jak np. Java, jednocześnie
+będąc szybkim jak kod w języku niskopoziomowym (np. C) dzięki abstrakcjom o zerowych kosztach.
+
+Elementami który dodały najwięcej złożoności i potencjału na wprowadzenie błędów były GStreamer oraz
+GTK. Są one napisane w C, i ich bindingi w języku Rust są tylko obudową na ogrom kodu C, który
+replikuje i zastępuje wiele funkcjonalności wykonywanych lepiej przez Rusta.
+
+\section{Możliwe usprawnienia}
+
+\begin{itemize}
+    \item Wyświetlanie statusu użytkowników na liście wszystkich użytkowników
+    \item Kontrolki do włączenia/wyłączenia kamerki/mikrofonu w oknie połączenia
+    \item Wykorzystanie pełnoprawnego frameworka architektury aktorów, np. \href{https://github.com/actix/actix}{Actix}.
+\end{itemize}
+
+
+%\show\chapter
+%\show\section
+%\show\subsection
+
+%\showthe\secindent
+%\showthe\beforesecskip
+%\showthe\aftersecskip
+%\showthe\secheadstyle
+%\showthe\subsecindent
+%\showthe\beforesubsecskip
+%\showthe\aftersubsecskip
+%\showthe\subseccheadstyle
+%\showthe\parskip
