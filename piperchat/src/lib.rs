@@ -1,8 +1,8 @@
 pub const APP_ID: &str = "eu.mguzik.piperchat";
 
-pub mod app;
 pub mod gui;
 pub mod message;
+pub mod session;
 
 use gtk::glib::MainContext;
 pub use message::Message;
@@ -21,8 +21,8 @@ use gtk::prelude::*;
 use log::{debug, error, info, warn};
 use tokio_tungstenite::tungstenite::Error;
 
-use app::{App, CallSide};
 use gui::window::Window;
+use session::{App, CallSide};
 
 type WsMessage = tokio_tungstenite::tungstenite::Message;
 type PcMessage = message::Message;
