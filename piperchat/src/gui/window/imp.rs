@@ -17,8 +17,6 @@ pub struct Window {
     #[template_child]
     pub stack_name_entry: TemplateChild<Entry>,
     #[template_child]
-    pub name_entry: TemplateChild<EntryRow>,
-    #[template_child]
     pub contacts_list: TemplateChild<ListBox>,
 
     pub window_data: Rc<RefCell<WindowData>>,
@@ -55,7 +53,6 @@ impl Window {
             .send_blocking(GuiEvent::NameEntered(username.clone()))
             .unwrap();
         self.window_data.borrow_mut().username = username.clone();
-        self.name_entry.set_text(username.as_str());
     }
 }
 

@@ -393,11 +393,7 @@ impl EventHandler {
                         "Receiving a call from {name}. Do you want to accept or reject this call?"
                     )),
                 );
-                dialog.add_responses(&[
-                    ("accept", "Accept"),
-                    ("accept_novideo", "Accept without video"),
-                    ("reject", "Reject"),
-                ]);
+                dialog.add_responses(&[("accept", "Accept"), ("reject", "Reject")]);
                 dialog.set_response_appearance("accept", ResponseAppearance::Suggested);
                 dialog.set_response_appearance("reject", ResponseAppearance::Destructive);
                 let window = self.window.clone();
@@ -405,9 +401,6 @@ impl EventHandler {
                 dialog.run_async(None, move |_obj, response| match response {
                     "accept" => {
                         window.accept_call();
-                    }
-                    "accept_novideo" => {
-                        window.accept_call_without_video();
                     }
                     "reject" => {
                         window.reject_call();
