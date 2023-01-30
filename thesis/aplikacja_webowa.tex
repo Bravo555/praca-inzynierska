@@ -1,4 +1,4 @@
-\chapter{Aplikacja webowa z użyciem WebRTC}
+\section{Aplikacja webowa z użyciem WebRTC}
 
 W niniejszym rozdziale zostanie omówiona aplikacja webowa wykorzystująca javascriptowe API WebRTC
 dostępne w przeglądarkach internetowych. Została ona wykonana w celu zapoznania się z WebRTC w jego
@@ -8,112 +8,140 @@ jako potrzebna do zrozumienia zawartości kolejnych rozdziałów, lecz zaledwie 
 standaryzacji zapewnionej przez WebRTC przy budowaniu aplikacji multimedialnych P2P w różnych
 środowiskach.
 
-\section{Opis aplikacji}
+\subsection{Opis aplikacji}
 
 Aplikacja webowa implementuje minimalną funkcjonalność by umożliwić użytkownikom prowadzenie rozmów
-wideo P2P z użyciem WebRTC. Rysunek \ref{fig:webrtc_app} przedstawia widok aplikacji po rozpoczęciu
-rozmowy.
+wideo P2P z użyciem WebRTC. Na rysunku \ref{fig:webrtc_app} przedstawiono widok aplikacji po
+rozpoczęciu rozmowy.
 
 \begin{figure}[htbp]
-  \centering
-  \includegraphics[width=\textwidth]{img/webrtc-app}
-  \caption{Zrzut ekranu aplikacji WebRTC podczas połączenia na tym samym komputerze}
-  \label{fig:webrtc_app}
+    \centering
+    \includegraphics[width=\textwidth]{img/webrtc-app}
+    \caption{Zrzut ekranu aplikacji WebRTC podczas połączenia na tym samym komputerze}
+    \label{fig:webrtc_app}
 \end{figure}
 
 Aby nawiązać połączenie, trzeba wykonać następujące kroki:
 
 \begin{enumerate}
-  \item Użytkownicy 1 i 2 wciskają przycisk \textbf{Start webcam} aby udostępnić obraz z kamery aplikacji.
-  \item Użytkownik 1 wciska przycisk \textbf{Call}, tworząc nowe połączenie.
-  \item Użytkownik 1 odczytuje ID połączenia które pojawiło się w polu tekstowym i przekazuje je użytkownikowi 2.
-  \item Użytkownik 2 wprowadza ID połączenia uzyskane od użytkownika 1 w to samo pole tekstowe i wciska przycisk
-        \textbf{Connect}.
+    \item Użytkownicy 1 i 2 wciskają przycisk \textbf{Start webcam} aby udostępnić obraz z kamery
+          aplikacji.
+    \item Użytkownik 1 wciska przycisk \textbf{Call}, tworząc nowe połączenie.
+    \item Użytkownik 1 odczytuje ID połączenia które pojawiło się w polu tekstowym i przekazuje je
+          użytkownikowi 2.
+    \item Użytkownik 2 wprowadza ID połączenia uzyskane od użytkownika 1 w to samo pole tekstowe i
+          wciska przycisk \textbf{Connect}.
 \end{enumerate}
 
 Następnie odbywa się proces nawiązywania połączenia zaprezentowany na diagramie \ref{fig:webrtc_connection_init}.
 
 \begin{figure}[H]
-  \centering
-  \includegraphics{img/webrtc-connection-init}
-  \caption{Diagram prezentujący proces nawiązywania połączenia}
-  \label{fig:webrtc_connection_init}
+    \centering
+    \includegraphics{img/webrtc-connection-init}
+    \caption{Diagram prezentujący proces nawiązywania połączenia}
+    \label{fig:webrtc_connection_init}
 \end{figure}
 
 \begin{enumerate}
-  \item Użytkownik 1 tworzy ofertę połączenia oraz wysyła ją do bazy Firestore. Rozpoczyna także proces nasłuchiwania
-        odpowiedzi i kandydatów ICE drugiej strony.
-  \item Użytkownik 1 rozpoczyna proces odkrywania kandydatów ICE.
-  \item Użytkownik 1 wysyła na bieżąco do Firestore otrzymywanych kandydatów ICE (trickle ICE).
-  \item Użytkownik 2 odczytuje z bazy ofertę użytkownika 1, generuje na nią odpowiedź, i wysyła ją do Firestore.
-  \item Użytkownik 2 rozpoczyna proces odkrywania kandydatów ICE.
-  \item Użytkownik 2 wysyła na bieżąco do Firestore otrzymywanych kandydatów ICE (trickle ICE).
-  \item Świadomi oferty, odpowiedzi, oraz kandydatów ICE drugiej strony, użytkownicy mogą nawiązać połączenie
-        peer-to-peer (lub w sytuacjach kiedy połączenie peer-to-peer jest niemożliwe, łączą się używając serwera TURN
-        jako pośrednika).
-        
+    \item Użytkownik 1 tworzy ofertę połączenia oraz wysyła ją do bazy Firestore. Rozpoczyna także
+          proces nasłuchiwania odpowiedzi i kandydatów ICE drugiej strony.
+    \item Użytkownik 1 rozpoczyna proces odkrywania kandydatów ICE.
+    \item Użytkownik 1 wysyła na bieżąco do Firestore otrzymywanych kandydatów ICE (trickle ICE).
+    \item Użytkownik 2 odczytuje z bazy ofertę użytkownika 1, generuje na nią odpowiedź, i wysyła ją
+          do Firestore.
+    \item Użytkownik 2 rozpoczyna proces odkrywania kandydatów ICE.
+    \item Użytkownik 2 wysyła na bieżąco do Firestore otrzymywanych kandydatów ICE (trickle ICE).
+    \item Świadomi oferty, odpowiedzi, oraz kandydatów ICE drugiej strony, użytkownicy mogą nawiązać
+          połączenie peer-to-peer (lub w sytuacjach kiedy połączenie peer-to-peer jest niemożliwe,
+          łączą się używając serwera TURN jako pośrednika).
+          
 \end{enumerate}
 
-\section{Architektura}
+\subsection{Architektura}
 
 Aplikacja składa się z następujących technologii:
 
 \begin{itemize}
-  \item \textbf{Frontend}: Node.js jako środowisko, Vite jako transpilator JS, Typescript jako język programowania
-  \item \textbf{Backend}: Firestore z platformy Google Firebase jako pośrednik między klientami w procesie nawiązywania
-        połączenia. Firestore jest przede wszystkim bazą danych NoSQL, jednak oferowana przez nią funkcjonalność
-        nasłuchiwania dokumentów oraz otrzymywania ich aktualizacji w czasie rzeczywistym sprawia, że może być
-        zastosowana w tym celu, co zwalnia programistę z obowiązku przygotowania, utrzymywania i zarządzania serwerem.
-  \item \textbf{WebRTC}: Do nawiązywania połączeń wykorzystywane jest API WebRTC dostępne w przeglądarkach
-        internetowych. Do realizacji procesu ICE, pozwalającemu stronom na zebranie możliwych ścieżek połączenia
-        peer-to-peer, a także w wypadku jego niepowodzenia skorzystanie z serwera TURN jako pośrednika, skorzystano z
-        serwerów oferowanych przez \href{https://www.metered.ca/tools/openrelay/}{Open Relay}
+    \item \textbf{Frontend}: Node.js jako środowisko, Vite jako transpilator JS, Typescript jako
+          język programowania
+    \item \textbf{Backend}: Firestore z platformy Google Firebase jako pośrednik między klientami w
+          procesie nawiązywania połączenia. Firestore jest przede wszystkim bazą danych NoSQL,
+          jednak oferowana przez nią funkcjonalność nasłuchiwania dokumentów oraz otrzymywania ich
+          aktualizacji w czasie rzeczywistym sprawia, że może być zastosowana w tym celu, co zwalnia
+          programistę z obowiązku przygotowania, utrzymywania i zarządzania serwerem.
+    \item \textbf{WebRTC}: Do nawiązywania połączeń wykorzystywane jest API WebRTC dostępne w
+          przeglądarkach internetowych. Do realizacji procesu ICE, pozwalającemu stronom na zebranie
+          możliwych ścieżek połączenia peer-to-peer, a także w wypadku jego niepowodzenia
+          skorzystanie z serwera TURN jako pośrednika, skorzystano z serwerów oferowanych przez
+          \href{https://www.metered.ca/tools/openrelay/}{Open Relay}
 \end{itemize}
 
-\section{Wybrane fragmenty kodu}
-\subsection{Przechwytywanie wideo i audio}
+\subsection{Wybrane fragmenty kodu}
 
-\begin{lstlisting}[language=Javascript,label=list:media-capture, caption=Przechwytywanie wideo i audio z komputera,
+W niniejszej sekcji zaprezentowane zostaną wybrane fragmenty kodu realizujące zadania niezbędne do
+działania aplikacji, takie jak przechwytywanie wideo i audio użytkownika, sygnalizacja połączenia,
+etc.
+
+\subsubsection{Zarządzanie strumieniami wideo i audio}
+
+Omówienie fragmentów kodu zostanie rozpoczęte od zaprezentowania przechwytywania oraz prezentacji
+lokalnych oraz zdalnych strumieni wideo i audio. Aplikacja ma do dyspozycji łącznie 4 strumienie
+audio:
+
+\begin{itemize}
+    \item lokalny strumień wideo - jest prezentowany użytkownikowi oraz wysyłany w obiekcie
+          \verb|RTCPeerConnection|
+    \item lokalny strumień audio - jest wysyłany w obiekcie \verb|RTCPeerConnection|
+    \item zdalny strumień wideo - jest odbierany z \verb|RTCPeerConnection| i prezentowany
+          użytkownikowi
+    \item zdalny strumień audio - jest odbierany z \verb|RTCPeerConnection| i prezentowany
+          użytkownikowi
+\end{itemize}
+
+Strumienie lokalne otrzymywane są z funkcji \verb|getUserMedia()|, natomiast strumienie zdalne są
+uzyskiwane ze zdarzenia \verb|ontrack| obiektu \verb|RTCPeerConnection|. Całość przedstawiono na
+listingu \ref{lst:media-capture}.
+
+\begin{lstlisting}[language=Javascript,label=lst:media-capture, caption=Przechwytywanie wideo i audio z komputera,
 basicstyle=\footnotesize \ttfamily, showtabs=true, tabsize=4]
 let localStream: MediaStream;
 const webcamButton = document.getElementById('webcamButton');
 
 webcamButton?.addEventListener('click', async () => {
-	if (localVideo.srcObject) {
-		localVideo.srcObject = null;
-		return;
-	}
+    if (localVideo.srcObject) {
+        localVideo.srcObject = null;
+        return;
+    }
 
-	localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true, });
-	webcamButton.innerHTML = 'Stop webcam';
+    localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true, });
+    webcamButton.innerHTML = 'Stop webcam';
 
-	remoteStream = new MediaStream();
-	remoteVideo.srcObject = remoteStream;
+    remoteStream = new MediaStream();
+    remoteVideo.srcObject = remoteStream;
 
 
-	localStream.getTracks().forEach((track) => { peerConnection.addTrack(track, localStream); });
-	peerConnection.addEventListener('track', event => {
-		event.streams[0].getTracks().forEach(track => {
-			remoteStream.addTrack(track);
-		});
-	});
+    localStream.getTracks().forEach((track) => { peerConnection.addTrack(track, localStream); });
+    peerConnection.addEventListener('track', event => {
+        event.streams[0].getTracks().forEach(track => {
+            remoteStream.addTrack(track);
+        });
+    });
 
-	localVideo.srcObject = localStream;
-	remoteVideo.srcObject = remoteStream;
+    localVideo.srcObject = localStream;
+    remoteVideo.srcObject = remoteStream;
 
-	callButton.disabled = false;
-	answerButton.disabled = false;
+    callButton.disabled = false;
+    answerButton.disabled = false;
 });
-
 \end{lstlisting}
 
-\subsection{Tworzenie połączenia}
+\subsubsection{Tworzenie połączenia}
 
-Aby utworzyć połączenie WebRTC, musimy najpierw skomunikować się z drugim klientem przez jakiś inny kanał, aka.
-out-of-band, wykorzystamy do tego celu bazę danych czasu rzeczywistego Firebase. Przygotujemy zatem uchwyt do bazy
-danych:
+Aby utworzyć połączenie WebRTC, klient X musi skomunikować się z klientem Y przez jakiś inny
+kanał, tzw. out-of-band, wykorzystano do tego celu bazę danych czasu rzeczywistego Firebase (listing
+\ref{lst:firebase-init}).
 
-\begin{lstlisting}[language=Javascript,label=list:firebase-init, caption=Inicjalizacja Firebase,
+\begin{lstlisting}[language=Javascript,label=lst:firebase-init, caption=Inicjalizacja Firebase,
 basicstyle=\footnotesize \ttfamily, showtabs=true, tabsize=4]
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, addDoc, getDoc, doc, setDoc, onSnapshot, updateDoc } from "firebase/firestore";
@@ -121,12 +149,12 @@ import { getFirestore, collection, addDoc, getDoc, doc, setDoc, onSnapshot, upda
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-	apiKey: "AIzaSyCr12-OQV5bgdQPFoexd44O9Ubmht966pw",
-	authDomain: "piperchat-2eacd.firebaseapp.com",
-	projectId: "piperchat-2eacd",
-	storageBucket: "piperchat-2eacd.appspot.com",
-	messagingSenderId: "172730710087",
-	appId: "1:172730710087:web:3dabdb9a62bee44e095962"
+    apiKey: "AIzaSyCr12-OQV5bgdQPFoexd44O9Ubmht966pw",
+    authDomain: "piperchat-2eacd.firebaseapp.com",
+    projectId: "piperchat-2eacd",
+    storageBucket: "piperchat-2eacd.appspot.com",
+    messagingSenderId: "172730710087",
+    appId: "1:172730710087:web:3dabdb9a62bee44e095962"
 };
 
 // Initialize Firebase
@@ -134,9 +162,9 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 \end{lstlisting}
 
-Następnie, do przycisku \textbf{Call} tworzącego połączenie podpinamy handler:
+Następnie, do przycisku \textbf{Call} tworzącego połączenie przypisano handler (listing \ref{lst:call-create}):
 
-\begin{lstlisting}[language=Javascript,label=list:call-create, caption=Tworzenie połączenia,
+\begin{lstlisting}[language=Javascript,label=lst:call-create, caption=Tworzenie połączenia,
 basicstyle=\footnotesize \ttfamily, showtabs=true, tabsize=4]
 callButton?.addEventListener('click', async () => {
   const callDoc = doc(collection(db, "calls"));
@@ -180,9 +208,12 @@ callButton?.addEventListener('click', async () => {
 });
 \end{lstlisting}
 
-\subsection{Dołączanie do połączenia}
+\subsubsection{Dołączanie do połączenia}
 
-\begin{lstlisting}[language=Javascript,label=list:call-join, caption=Dołączanie do połączenia połączenia,
+By dołączyć do połączenia należy odczytać wygenerowaną w bazie ofertę i zarejestrować ją z obiektem
+\verb|RTCPeerConnection|, a następnie wysłać odpowiedź. Proces ten zaprezentowano na listingu \ref{lst:call-join}
+
+\begin{lstlisting}[language=Javascript,label=lst:call-join, caption=Dołączanie do połączenia połączenia,
 basicstyle=\footnotesize \ttfamily, showtabs=true, tabsize=4]
 answerButton?.addEventListener("click", async () => {
   const callId = callInput.value;
@@ -225,52 +256,58 @@ answerButton?.addEventListener("click", async () => {
 });
 \end{lstlisting}
 
-\section{Omówienie działania aplikacji na przykładzie}
-\subsection{Śledzenie procesu nawiązywania połączenia}
+\subsection{Omówienie działania aplikacji na przykładzie}
 
-W poniższym rozdziale zostaną omówione dane wymieniane pomiędzy stronami na rzecz ustanowienia połączenia WebRTC.
+W niniejszej sekcji omówiono niektóre wiadomości generowane i odbierane przez obiekt
+\verb|RTCPeerConnection| celem zaprezentowania działania WebRTC na konkretnym przykładzie.
 
+\subsubsection{Śledzenie procesu nawiązywania połączenia}
+
+W poniższej sekcji zostaną omówione dane wymieniane pomiędzy stronami na rzecz ustanowienia
+połączenia WebRTC.
 
 Aby ustanowić połączenie peer-to-peer, należy rozwiązać poniższe problemy: \cite{hpbn}
 
 \begin{itemize}
-  \item Należy powiadomić drugą stronę że chcemy ustanowić do niej połączenie, aby wiedziała ona żeby rozpocząć
-        nasłuchiwanie.
-  \item Należy zidentyfikować ścieżki trasowania dla połączenia peer-to-peer i uzgodnić jedną pomiędzy obiema stronami.
-  \item Należy wymienić niezbędne informacje o używanych przez peerów parametrach połączenia - jakich protokołów,
-        kodeków, ustawień, etc. użyć.
+    \item Należy powiadomić drugą stronę że chcemy ustanowić do niej połączenie, aby wiedziała ona
+          żeby rozpocząć nasłuchiwanie.
+    \item Należy zidentyfikować ścieżki trasowania dla połączenia peer-to-peer i uzgodnić jedną
+          pomiędzy obiema stronami.
+    \item Należy wymienić niezbędne informacje o używanych przez peerów parametrach połączenia -
+          jakich protokołów, kodeków, ustawień, etc. użyć.
 \end{itemize}
 
-W aplikacji webowej, użytkownik 1 chacący utworzyć nowe połączenie tworzy dokument w kolekcji calls. ID rozmowy to ID
-dokumentu utworzonego w bazie Firestore. Obu użytkowników przeprowadzi początkową wymianę danych pisząc do oraz czytając
-z tego dokumentu.
+W aplikacji webowej, użytkownik 1 chacący utworzyć nowe połączenie tworzy dokument w kolekcji calls.
+ID rozmowy to ID dokumentu utworzonego w bazie Firestore. Obu użytkowników przeprowadzi początkową
+wymianę danych pisząc do oraz czytając z tego dokumentu.
 
-Użytkownik 1 tworzy zatem nowy dokument w bazie:
+Użytkownik 1 tworzy zatem nowy dokument w bazie (listing \ref{list:call-doc-1}):
 
 \begin{lstlisting}[language=Javascript,label=list:call-doc-1, caption=Dokument połączenia po utworzeniu przez użytkownika 1,
 basicstyle=\footnotesize \ttfamily, showtabs=true, tabsize=4]
 {
-	id: "YHARFdJoA4lAd8nRu3Uw",
+    id: "YHARFdJoA4lAd8nRu3Uw",
 }
 \end{lstlisting}
 
-Następnie użytkownik 1 tworzy ofertę, czyli opis połączenia, pozwalający użytkownikowi 2 na połączenie się:
+Następnie użytkownik 1 tworzy ofertę, czyli opis połączenia, pozwalający użytkownikowi 2 na
+połączenie się (listing \ref{list:call-doc-2}):
 
 \begin{lstlisting}[language=Javascript,label=list:call-doc-2, caption=Dokument połączenia po dodaniu opisu sesji w protokole SDP,
 basicstyle=\footnotesize \ttfamily, showtabs=true, tabsize=4]
 {
-	id: "YHARFdJoA4lAd8nRu3Uw",
+    id: "YHARFdJoA4lAd8nRu3Uw",
   offer: "v=0o=mozilla...THIS_IS_SDPARTA-99.0 8615225844821133956 0 IN IP4 0.0.0.0s=-t=0 0a=fingerprint:sha-256 5F:A8:8A:A5:B8:1D:0C:39:21:93:FA:3A:B2:B7:B6:3F:EF:8A:5D:3C:6E:86:2E:A7:0A:D4:F0:E3:58:E0:E2:7B..."
 }
 \end{lstlisting}
 
 Równocześnie, użytkownik 1 rozpoczyna wyszukiwanie kandydatów ICE (Interactive Connecivity Establishment), czyli
-sposobów na umożliwienie drugiej stronie do nawiązania ze sobą połączenia (problem nr 2):
+sposobów na umożliwienie drugiej stronie do nawiązania ze sobą połączenia (problem nr 2, listing \ref{list:call-doc-3}):
 
 \begin{lstlisting}[language=Javascript,label=list:call-doc-3, caption=Dokument połączenia po dodaniu kandydatów ICE,
 basicstyle=\footnotesize \ttfamily, showtabs=true, tabsize=4]
 {
-	id: "YHARFdJoA4lAd8nRu3Uw",
+    id: "YHARFdJoA4lAd8nRu3Uw",
   offer: "v=0o=mozilla...THIS_IS_SDPARTA-99.0 8615225844821133956 0 IN IP4 0.0.0.0s=-t=0 0a=fingerprint:sha-256 5F:A8:8A:A5:B8:1D:0C:39:21:93:FA:3A:B2:B7:B6:3F:EF:8A:5D:3C:6E:86:2E:A7:0A:D4:F0:E3:58:E0:E2:7B...",
   offerCandidates: [
       {
@@ -303,16 +340,17 @@ basicstyle=\footnotesize \ttfamily, showtabs=true, tabsize=4]
 }
 \end{lstlisting}
 
-Na koniec, użytkownik 1 wysłuchuje zmian w dokumencie sygnalizujących próbę nawiązania połączenia. Dokładniej,
-użytkownik 1 oczekuje na pojawienie się, analogicznie do \verb|offer| i \verb|offerCandidates|, pól \verb|answer| oraz
-\verb|answerCandidates|. Zawartość tych pól trafi do obiektu \verb|RTCPeerConnection|, które zajmie się ustanowieniem
-połączenia.
+Na koniec, użytkownik 1 wysłuchuje zmian w dokumencie sygnalizujących próbę nawiązania połączenia.
+Dokładniej, użytkownik 1 oczekuje na pojawienie się, analogicznie do \verb|offer| i
+\verb|offerCandidates|, pól \verb|answer| oraz \verb|answerCandidates|. Zawartość tych pól trafi do
+obiektu \verb|RTCPeerConnection|, które zajmie się ustanowieniem połączenia.
 
 
-\subsection{Analiza pakietów protokołu SDP}
+\subsubsection{Analiza pakietów protokołu SDP}
 
-Parametry ustanowionego połączenia są determinowane przez protokół SDP. Zobaczmy zatem pakiet SDP z poprzedniego
-podrozdziału:
+Parametry ustanowionego połączenia są determinowane przez protokół SDP. Wygenerowana oferta SDP
+zawiera wiele pól które mogą być wykorzystane do negocjacji parametrów połączenia, co zaprezentowano
+na listingu \ref{list:call-sdp-1}.
 
 \begin{lstlisting}[label=list:call-sdp-1, caption=Opis oferty połączenia SDP,
 basicstyle=\footnotesize \ttfamily, showtabs=true, tabsize=4]
@@ -404,27 +442,27 @@ a=ssrc-group:FID 335903003 1910270587
 sesji z listingu \ref{list:call-sdp-1}, można wyróżnić następujące pola:
 
 \begin{itemize}
-  \item \verb|v=0|: wersja numeru protokołu - aktualnie 0 jest jedyną możliwą wersją
-  \item \verb|o=<username> <sess-id> <sess-version> <nettype> <addrtype> <unicast-address>|: kolekcja pól o inicjatorze
-        sesji
-        \begin{itemize}
-          \item \verb|username: mozilla THIS_IS_SDPARTA-99.0|, \href{https://stackoverflow.com/a/52583935}{co jest referencją do filmu 300}
-          \item \verb|sess-id: 107455341790422027|
-          \item \verb|sess-version: 0|
-          \item \verb|nettype: IN| - \verb|IN| ma oznaczać internet, inne wartości mogą zostać użyte w przyszłości
-          \item \verb|addrtype: IP4|
-          \item \verb|unicast-address: 0.0.0.0|
-        \end{itemize}
-  \item \verb|s=-|: nazwa sesji. Z RFC: \say{ The "s=" line MUST NOT be empty. If a session has no meaningful name, then "s= " or "s=-" (i.e., a single space or dash as the session name) is RECOMMENDED.}\cite{rfc8866}
-  \item \verb|t=<start-time> <stop-time>|: czas rozpoczęcia i zakończenia sesji w czasie unixowym. Wartość wynosi 0,
-        ponieważ sesja nie jest ograniczona czasowo.
-  \item \verb|m=<media> <port> <proto> <fmt> ...| - opis mediów:
-        \begin{itemize}
-          \item \verb|m=audio 9 UDP/TLS/RTP/ SAVPF 109 9 0 8 101|
-          \item \verb|m=video 9 UDP/TLS/RTP/ SAVPF 120 124 121 125 126 127 97 98|
-        \end{itemize}
+    \item \verb|v=0|: wersja numeru protokołu - aktualnie 0 jest jedyną możliwą wersją
+    \item \verb|o=<username> <sess-id> <sess-version> <nettype> <addrtype> <unicast-address>|: kolekcja pól o inicjatorze
+          sesji
+          \begin{itemize}
+              \item \verb|username: mozilla THIS_IS_SDPARTA-99.0|, \href{https://stackoverflow.com/a/52583935}{co jest referencją do filmu 300}
+              \item \verb|sess-id: 107455341790422027|
+              \item \verb|sess-version: 0|
+              \item \verb|nettype: IN| - \verb|IN| ma oznaczać internet, inne wartości mogą zostać użyte w przyszłości
+              \item \verb|addrtype: IP4|
+              \item \verb|unicast-address: 0.0.0.0|
+          \end{itemize}
+    \item \verb|s=-|: nazwa sesji. Z RFC: \say{ The "s=" line MUST NOT be empty. If a session has no meaningful name, then "s= " or "s=-" (i.e., a single space or dash as the session name) is RECOMMENDED.}\cite{rfc8866}
+    \item \verb|t=<start-time> <stop-time>|: czas rozpoczęcia i zakończenia sesji w czasie unixowym. Wartość wynosi 0,
+          ponieważ sesja nie jest ograniczona czasowo.
+    \item \verb|m=<media> <port> <proto> <fmt> ...| - opis mediów:
+          \begin{itemize}
+              \item \verb|m=audio 9 UDP/TLS/RTP/ SAVPF 109 9 0 8 101|
+              \item \verb|m=video 9 UDP/TLS/RTP/ SAVPF 120 124 121 125 126 127 97 98|
+          \end{itemize}
 \end{itemize}
 
-Resztę opisu dominują pola \verb|a=|: atrybuty, które są głównym sposobem rozszerzania SDP. Mogą one być używane jako
-atrybuty sesji, atrybuty mediów, lub oba. Pozycje tego pola zaczynające się od \verb|rtpmap| zawierają oferowane do
-użycia w połączeniu kodeki audio i wideo.
+Resztę opisu dominują pola \verb|a=|: atrybuty, które są głównym sposobem rozszerzania SDP. Mogą one
+być używane jako atrybuty sesji, atrybuty mediów, lub oba. Pozycje tego pola zaczynające się od
+\verb|rtpmap| zawierają oferowane do użycia w połączeniu kodeki audio i wideo.

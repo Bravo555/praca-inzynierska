@@ -59,8 +59,8 @@ próbek luma pokrywającą w różny sposób powierzchnię.
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{img/rozdzial2/ycbcr_subsampling_resolution}
-    \caption{}
-    \caption[Prezentacja działania chroma subsampling]{Prezentacja działania chroma subsampling. Źródło: repozytorium digital-video-introduction}
+    \caption{Prezentacja działania chroma subsampling}
+    \caption*{Źródło: repozytorium digital-video-introduction \cite{digital_video_introduction}}
     \label{fig:chroma_subsampling_resolution}
 \end{figure}
 
@@ -68,6 +68,7 @@ próbek luma pokrywającą w różny sposób powierzchnię.
     \centering
     \includegraphics[width=0.6\textwidth]{img/rozdzial2/chroma_subsampling_ratios}
     \caption{Zasada działania różnych formatów chroma subsampling}
+    \caption*{Źródło: repozytorium digital-video-introduction \cite{digital_video_introduction}}
     \label{fig:chroma_subsampling_ratios}
 \end{figure}
 
@@ -79,6 +80,7 @@ obrazkiem.
     \centering
     \includegraphics[width=\textwidth]{img/rozdzial2/chroma_subsampling_examples}
     \caption{Porównanie kanału chroma oraz rezultatu różnych formatów chroma subsampling}
+    \caption*{Źródło: repozytorium digital-video-introduction \cite{digital_video_introduction}}
     \label{fig:chroma_subsampling_comparison}
 \end{figure}
 
@@ -97,6 +99,7 @@ procesie kompensacji.
     \centering
     \includegraphics[width=.5\textwidth]{img/rozdzial2/original_frames_motion_estimation}
     \caption{Przykład sąsiadujących klatek na których występuje ruch}
+    \caption*{Źródło: repozytorium digital-video-introduction \cite{digital_video_introduction}}
     \label{fig:motion_compensation}
 \end{figure}
 
@@ -104,6 +107,7 @@ procesie kompensacji.
     \centering
     \includegraphics[width=.5\textwidth]{img/rozdzial2/difference_frames}
     \caption{Porównanie różnicy pomiędzy klatkami bez oraz z uwzględnieniem kompensacji ruchu}
+    \caption*{Źródło: repozytorium digital-video-introduction \cite{digital_video_introduction}}
     \label{fig:motion_compensation_residual}
 \end{figure}
 
@@ -117,7 +121,8 @@ mogą być przewidziane na podstawie wartości sąsiadujących pikseli.
 \begin{figure}[H]
     \centering
     \includegraphics[width=.5\textwidth]{img/rozdzial2/repetitions_in_space}
-    \caption{Klatka z serialu South Park z zaznaczonymi obszarami które można skompresować predykcją intra-frame}
+    \caption[Klatka z serialu South Park z zaznaczonymi skorelowanymi obszarami.]{Klatka z serialu South Park z zaznaczonymi skorelowanymi obszarami. Obszary te można skompresować predykcją intra-frame}
+    \caption*{Źródło: repozytorium digital-video-introduction \cite{digital_video_introduction}}
     \label{fig:intra_frame_compression}
 \end{figure}
 
@@ -142,6 +147,7 @@ różnicą że podczas kwantyzacji nie dzieli się przez jedną wartość, tylko
         \caption{Blok współczynników po DCT}
     \end{subfigure}
     \caption{Proces DCT}
+    \caption*{Źródło: repozytorium digital-video-introduction \cite{digital_video_introduction}}
     \label{fig:dct}
 \end{figure}
 
@@ -154,6 +160,7 @@ różnicą że podczas kwantyzacji nie dzieli się przez jedną wartość, tylko
         \includegraphics[width=.9\linewidth]{img/rozdzial2/quantization_2}
     \end{subfigure}
     \caption{Proces kwantyzacji}
+    \caption*{Źródło: repozytorium digital-video-introduction \cite{digital_video_introduction}}
     \label{fig:quantization}
 \end{figure}
 
@@ -244,6 +251,7 @@ zrealizowania, niezbędne było użycie wielu protokołów sieciowych, które po
     \centering
     \includegraphics{img/webrtc-stack_hpbn}
     \caption{Stos protokołów w WebRTC}
+    \caption*{Źródło: High Performance Browser Networking\cite{hpbn}}
     \label{fig:webrtc_stack}
 \end{figure}
 
@@ -265,12 +273,14 @@ WebRTC pomaga rozwiązać 3 problemy niezbędne do nawiązania multimedialnego p
 Przed nawiązaniem komunikacji P2P i negocjacji parametrów strumieni mediów, należy najpierw
 powiadomić drugą stronę połączenia o intencji nawiązania połączenia oraz ustalić czy peer jest
 osiągalny. Ponieważ peer nie nasłuchuje jeszcze pakietów, potrzebny jest wspólny kanał
-sygnalizacyjny przez który możliwa będzie sygnalizacja połączenia.
+sygnalizacyjny przez który możliwa będzie sygnalizacja połączenia. Sytuację przedstawiono na rysunku
+\ref{fig:signaling}.
 
 \begin{figure}[H]
     \centering
     \includegraphics{img/signaling-1}
     \caption{Strony sygnalizacji}
+    \caption*{Źródło: High Performance Browser Networking\cite{hpbn}}
     \label{fig:signaling}
 \end{figure}
 
@@ -278,7 +288,7 @@ WebRTC nie wymusza żadnego protokołu transportowego do celów sygnalizacji, za
 pozostawiając wybór aplikacji. Pozwala to na interoperacyjność z istniejącymi już protokołami i
 infrastrukturą.
 
-W wypadku naszej aplikacji, rola kanału sygnalizacyjnego będzie pełniona przez serwer aplikacji.
+W wypadku tworzonej aplikacji, rola kanału sygnalizacyjnego będzie pełniona przez serwer aplikacji.
 
 \subsubsection{Negocjacja parametrów połączenia}
 \label{negotiation}
@@ -295,6 +305,7 @@ rysunku \ref{fig:signaling2}.
     \centering
     \includegraphics{img/signaling-2}
     \caption{Proces negocjacji}
+    \caption*{Źródło: High Performance Browser Networking\cite{hpbn}}
     \label{fig:signaling2}
 \end{figure}
 
@@ -340,7 +351,7 @@ możliwych adresów pod którym możliwe jest połączenie z lokalnym peerem
     \item Jeśli istnieje, agent ICE pyta zdalny serwer STUN o publiczny adres IP i numer portu
           lokalnego peera.
     \item Jeśli istnieje, agent ICE wykorzystuje serwer TURN jako pośrednik do ruchu pomiędzy
-          peerami jeżeli niemożliwe jest ustanowienie połączenia P2P z powodu np. zbyt restrykcyjnego NATa.
+          peerami jeżeli niemożliwe jest ustanowienie połączenia P2P z powodu np. zbyt restrykcyjnego NAT.
 \end{enumerate}
 
 Powyższe procesy są wykonywane automatycznie, w tle, programista musi tylko w odpowiedni sposób
@@ -359,6 +370,7 @@ danych.
     \centering
     \includegraphics[width=.5\textwidth]{img/technologie/gstreamer-overview}
     \caption{Architektura projektu GStreamer}
+    \caption*{Źródło: Dokumentacja GStreamer\cite{gstreamer}}
 \end{figure}
 
 Dane generowane są elementach-źródłach (source), są przetwarzane przez elementy-filtry (filter), a
@@ -370,10 +382,11 @@ wszystkich jego elementów.
     \centering
     \includegraphics[width=.7\textwidth]{img/technologie/simple-player}
     \caption{Przykładowy rurociąg aplikacji GStreamer}
+    \caption*{Źródło: Dokumentacja GStreamer\cite{gstreamer}}
     \label{fig:gstreamer_example_pipeline}
 \end{figure}
 
-Rysunek \ref{fig:gstreamer_example_pipeline} przedstawia rurociąg przykładowego odtwarzacza plików
+Na rysunku \ref{fig:gstreamer_example_pipeline} przedstawiono rurociąg przykładowego odtwarzacza plików
 OGG. Dane przechodzą przez rurociąg od lewej do prawej strony, będąc transformowane w każdym
 elemencie.
 
@@ -384,10 +397,10 @@ GStreamer posiada swoją własną implementację WebRTC, wykonaną przez firmę 
 elementem jest element
 \href{https://gstreamer.freedesktop.org/documentation/webrtc/index.html?gi-language=c}{webrtcbin}.
 Ten element zajmuje się procesami negocjacji parametrów połączenia oraz zbierania i udostępniania
-kandydatów ICE omówionymi w podrozdziałach \ref{negotiation} i \ref{ice}. Zdarzenia takie jak
-pojawienie się nowego strumienia multimedialnego są komunikowane aplikacji za pomocą sygnałów, które
-są obsługiwane zazwyczaj poprzez tworzenie nowych elementów i dodanie ich do rurociągu celem
-prezentacji przychodzącego strumienia użytkownikowi.
+kandydatów ICE omówionymi w poprzednich sekcjach. Zdarzenia takie jak pojawienie się nowego
+strumienia multimedialnego są komunikowane aplikacji za pomocą sygnałów, które są obsługiwane
+zazwyczaj poprzez tworzenie nowych elementów i dodanie ich do rurociągu celem prezentacji
+przychodzącego strumienia użytkownikowi.
 
 \subsection{GTK4 i libadwaita}
 
@@ -404,6 +417,7 @@ system klas i obiektów, a także inne zależności widoczne na rysunku \ref{fig
     \centering
     \includegraphics[width=.7\textwidth]{img/gtk-toolkit}
     \caption{Architektura zestawu narzędzi GTK}
+    \caption*{Źródło: Wikipedia \cite{wiki:gtk}}
     \label{fig:gtk_toolkit}
 \end{figure}
 

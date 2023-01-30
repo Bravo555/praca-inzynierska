@@ -26,10 +26,10 @@
     komunikatorze wideo. Wykonano w tym celu prosty komunikator internetowy składający się z serwera
     oraz aplikacji graficznej na systemy Linux wykonanej w języku programowania Rust z użyciem
     frameworków GTK oraz GStreamer. Niestety dostępne w GStreamer implementacje kodeków nie były w
-    stanie osiągnąć prędkości kodowania pozwalającej na strumieniowanie wideo w czasie rzeczywistym.
-    Jednak w miarę rozwoju enkoderów programowych a także coraz większej dostępności enkoderów
-    sprzętowych w nowoczesnych układach graficznych, użycie AV1 w komunikatorach wideo może jeszcze
-    stać się praktyczne w niedalekiej przyszłości.
+    stanie osiągnąć prędkości kodowania pozwalającej na strumieniowanie wideo w czasie rzeczywistym
+    i aplikacja wykorzystuje zamiast tego kodek VP8. W miarę rozwoju enkoderów programowych a
+    także coraz większej dostępności enkoderów sprzętowych w nowoczesnych układach graficznych,
+    użycie AV1 w komunikatorach wideo może jednak stać się praktyczne w niedalekiej przyszłości.
 \end{abstract}
 \mykeywords{AV1}
 
@@ -54,9 +54,9 @@
         in a video-chat application. For this purpose, such application was developed using the Rust
         programming language, consisting of a server and a GUI application for Linux systems
         utilizing GTK and GStreamer frameworks. Unfortunately available software codecs were not
-        able to achieve a real-time encoding speed. As software codecs improve and hardware codecs
-        continue to appear in more products, the usage of AV1 in real-time applications may
-        nonetheless become feasible in a near future.
+        able to achieve a real-time encoding speed and the application was made to use the VP8 codec
+        instead. As software codecs improve and hardware codecs continue to appear in more products,
+        the usage of AV1 in real-time applications may nonetheless become feasible in a near future.
     \end{abstract}
     \mykeywords{AV1}
 }

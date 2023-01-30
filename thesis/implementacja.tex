@@ -1,10 +1,11 @@
-\chapter{Implementacja}
+\section{Piperchat}
 
 W niniejszym rozdziale zostanie przedstawiona implementacja wideokomunikatora Piperchat. Projekt
 składa się z serwera oraz klienta wykonanych w języku Rust. Klient używa także frameworków GTK oraz
 GStreamer.
 
 Rysunek \ref{fig:project_tree} prezentuje drzewo projektu.
+
 
 \begin{figure}[H]
     \centering
@@ -31,20 +32,22 @@ Rysunek \ref{fig:project_tree} prezentuje drzewo projektu.
                     \end{itemize}
               \item \verb|/src/lib.rs| - jest punktem wejściowym "biblioteki" tzn. zamieszczone tu
                     elementy są dostępne dla wszystkich programów z katalogu \verb|bin|
-              \item \verb|/src/message.rs| - zawiera definicje wiadomości wysyłanych pomiędzy klientem a serwerem.
+              \item \verb|/src/message.rs| - zawiera definicje wiadomości wysyłanych pomiędzy
+                    klientem a serwerem.
               \item \verb|/src/gui.rs| - definiuje moduł \verb|gui| składający się z modułów
                     \verb|window| oraz \verb|contact_object|
                     \begin{itemize}
-                        \item \verb|/src/gui/window.rs| - zawiera definicję okna aplikacji jako obiektu GTK
+                        \item \verb|/src/gui/window.rs| - zawiera definicję okna aplikacji jako
+                              obiektu GTK
                               \begin{itemize}
-                                  \item \verb|/src/gui/window/imp.rs| - zawiera implementację okna aplikacji jako
-                                        obiektu GTK
+                                  \item \verb|/src/gui/window/imp.rs| - zawiera implementację okna
+                                        aplikacji jako obiektu GTK
                               \end{itemize}
                         \item \verb|/src/gui/contact_object.rs| - zawiera definicję kontaktu (tj. innego
                               połączonego i dostępnego użytkownika) jako obiektu GTK
                               \begin{itemize}
-                                  \item \verb|/src/gui/contact_object/imp.rs| - zawiera implementację kontaktu
-                                        jako obiektu GTK
+                                  \item \verb|/src/gui/contact_object/imp.rs| - zawiera
+                                        implementację kontaktu jako obiektu GTK
                               \end{itemize}
                     \end{itemize}
           \end{itemize}
@@ -56,7 +59,7 @@ Rysunek \ref{fig:project_tree} prezentuje drzewo projektu.
           zależności
 \end{itemize}
 
-\section{Serwer}
+\subsection{Serwer}
 
 Do komunikacji wykorzystywane są protokoły TCP i WebSockets. TCP zapewnia gwarancję poprawności
 odebranych danych i ich odpowiedniej kolejności, zamienia strumień pakietów na łańcuch bajtów
@@ -64,7 +67,7 @@ przychodzący w kolejności. Protokół Websockets zapewnia framing, czyli zamie
 strumień wiadomości które mogą mieć różną wielkość i zawierać dane tekstowe lub binarne. Protokół
 aplikacji wykorzystuje tylko dane tekstowe.
 
-\subsection{Protokół aplikacji}
+\subsubsection{Protokół aplikacji}
 
 Rodzaje komunikatów możliwych do wysłania przez klient lub serwer są zebrane w odpowiedni typ
 wyliczeniowy a następnie w wiadomości tekstowej Websockets wysyłana jest ich serializacja w formacie
@@ -109,9 +112,9 @@ przez swój własny słuchacz komendy może reagować wysyłając wiadomości na
     \label{fig:server_data_flow}
 \end{figure}
 
-\subsection{Fragmenty kodu}
+\subsubsection{Fragmenty kodu}
 
-\subsubsection{Główna pętla}
+\paragraph{Główna pętla}
 
 \begin{listing}[H]
     \begin{minted}{rust}
@@ -170,7 +173,7 @@ struct User {
     \label{lst:server_state}
 \end{listing}
 
-\subsubsection{Funkcja process}
+\paragraph{Funkcja process}
 
 Funkcja process odpowiedzialna jest za komunikację z każdym z klientów. Wykonuje następujące
 zadania:
@@ -188,7 +191,7 @@ zadania:
     \item Po rozłączeniu, usunięcie z listy użytkowników w obiekcie \verb|State|.
 \end{enumerate}
 
-\subsubsection{Stan użytkownika}
+\paragraph{Stan użytkownika}
 
 Algebraiczne typy danych dostępne w języku Rust znacząco ułatwiają modelowanie stanu programu.
 Oprócz \emph{product types} dostępnych w także innych językach programowania jako struktury
@@ -236,7 +239,7 @@ enum Command {
 
 
 
-\section{Klient}
+\subsection{Klient}
 
 Aplikacja okienkowa składa się z czterech konkurentnie wykonujących się zadań:
 
@@ -279,15 +282,14 @@ połączenia, następnie reaguje na nie wykonując operacje na lub wysyłając k
     \label{fig:client_data_flow}
 \end{figure}
 
-\subsection{EventHandler}
+\subsubsection{EventHandler}
 
 Obiekt \verb|EventHandler| zajmuje się reagowaniem na zdarzenia z obu zadań. Listing
 \ref{lst:eventhandler} zawiera definicję obiektu oraz zawartość funkcji \verb|start|, która
 uruchamia proces handlowania zdarzeń. Obiekt nasłuchuje na przychodzące zdarzenia, a następnie
 obsługuje je w osobnych funkcjach, które zostaną omówione w czasie omawiania poszczególnych zadań.
 
-\begin{listing}[H]
-    \begin{minted}{rust}
+\begin{minted}{rust}
 struct EventHandler {
     gui_rx: Receiver<GuiEvent>,
     network_rx: Receiver<NetworkEvent>,
@@ -322,11 +324,9 @@ impl EventHandler {
     ...
 }
 \end{minted}
-    \caption{Definicja obiektu EventHandler oraz jego metody obsługującej zdarzenia}
-    \label{lst:eventhandler}
-\end{listing}
+\captionof{listing}{Definicja obiektu EventHandler oraz jego metody obsługującej zdarzenia\label{lst:eventhandler}}
 
-\subsection{Zadanie GUI}
+\subsubsection{Zadanie GUI}
 
 GUI emituje następujące zdarzenia (listing \ref{lst:guievent}):
 
@@ -346,8 +346,7 @@ pub enum GuiEvent {
 
 Są one obsługiwane w następujący sposób (listing \ref{lst:guievent_handler}):
 
-\begin{listing}[H]
-    \begin{minted}{rust}
+\begin{minted}{rust}
 async fn handle_gui_event(&mut self, event: GuiEvent) {
     match event {
         GuiEvent::CallStart(id, name) => {
@@ -395,11 +394,9 @@ async fn handle_gui_event(&mut self, event: GuiEvent) {
     }
 }
 \end{minted}
-    \caption{Metoda obsługująca zdarzenia GuiEvent}
-    \label{lst:guievent_handler}
-\end{listing}
+\captionof{listing}{Metoda obsługująca zdarzenia GuiEvent\label{lst:guievent_handler}}
 
-\subsection{Zadanie połączenia}
+\subsubsection{Zadanie połączenia}
 
 Zadanie połączenia emituje następujące zdarzenia (listing \ref{lst:networkevent}):
 
@@ -513,14 +510,15 @@ async fn handle_network_event(&mut self, event: NetworkEvent) {
 \end{minted}
 \captionof{listing}{Metoda obsługująca zdarzenia NetworkEvent\label{lst:networkevent_handler}}
 
-\subsection{Zadanie GStreamer}
+\subsubsection{Zadanie GStreamer}
 
 Zadanie GStreamer jest tworzone gdy rozpoczynane jest nowe połączenie, i jest niszczone gdy
 połączenie jest zamykane.
 
-\subsubsection{Pipeline}
+\paragraph{Pipeline}
 
-W konstruktorze obiektu tworzony jest pipeline z reprezentacji tekstowej:
+W konstruktorze obiektu z reprezentacji tekstowej tworzony jest pipeline kierujący lokalne
+strumienie wideo i audio do elementu webrtcbin (listing \ref{lst:pipeline-1}):
 
 \begin{listing}[H]
     \begin{minted}{rust}
@@ -532,54 +530,166 @@ let pipeline = gst::parse_launch(
 )?;
 \end{minted}
     \caption{Reprezentacja tekstowa pipeline'u}
+    \label{lst:pipeline-1}
 \end{listing}
 
-\subsection{Interfejs użytkownika}
+Następnie do pipeline'u dołączane są zdalne strumienie mediów pojawiające się za pomocą sygnału
+\verb|pad_added|. Przychodzące strumienie muszą najpierw zostać odkodowane za pomocą elementu
+decodebin (listing \ref{lst:pipeline-2}):
 
-\subsubsection{Ekran lądowania}
+\begin{minted}{rust}
+app.webrtcbin.connect_pad_added(move |_webrtc, pad| {
+    let app = upgrade_weak!(app_clone);
+
+    if let Err(err) = app.on_incoming_stream(pad) {
+        gst::element_error!(
+            app.pipeline,
+            gst::LibraryError::Failed,
+            ("Failed to handle incoming stream: {:?}", err)
+        );
+    }
+});
+
+...
+
+// Whenever there's a new incoming, encoded stream from the peer create a new decodebin
+fn on_incoming_stream(&self, pad: &gst::Pad) -> Result<(), anyhow::Error> {
+    // Early return for the source pads we're adding ourselves
+    if pad.direction() != gst::PadDirection::Src {
+        return Ok(());
+    }
+
+    let decodebin = gst::ElementFactory::make("decodebin").build().unwrap();
+    let app_clone = self.downgrade();
+    decodebin.connect_pad_added(move |_decodebin, pad| {
+        let app = upgrade_weak!(app_clone);
+
+        if let Err(err) = app.on_incoming_decodebin_stream(pad) {
+            gst::element_error!(
+                app.pipeline,
+                gst::LibraryError::Failed,
+                ("Failed to handle decoded stream: {:?}", err)
+            );
+        }
+    });
+
+    self.pipeline.add(&decodebin).unwrap();
+    decodebin.sync_state_with_parent().unwrap();
+
+    let sinkpad = decodebin.static_pad("sink").unwrap();
+    pad.link(&sinkpad).unwrap();
+
+    Ok(())
+}
+\end{minted}
+\captionof{listing}{Dekodowanie zdalnych strumieni\label{lst:pipeline-2}}
+
+Następnie zdekodowane strumienie są dodawane do pipeline'u w funkcji
+\verb|on_incoming_decodebin_stream(pad)| (listing \ref{lst:pipeline-3}):
+
+\begin{listing}[H]
+    \begin{minted}{rust}
+// Handle a newly decoded decodebin stream and depending on its type, create the relevant
+// elements or simply ignore it
+fn on_incoming_decodebin_stream(&self, pad: &gst::Pad) -> Result<(), anyhow::Error> {
+    let caps = pad.current_caps().unwrap();
+    let name = caps.structure(0).unwrap().name();
+
+    let sink = if name.starts_with("video/") {
+        gst::parse_bin_from_description(
+            "queue ! videoconvert ! videoscale ! autovideosink",
+            true,
+        )?
+    } else if name.starts_with("audio/") {
+        gst::parse_bin_from_description(
+            "queue ! audioconvert ! audioresample ! autoaudiosink",
+            true,
+        )?
+    } else {
+        println!("Unknown pad {:?}, ignoring", pad);
+        return Ok(());
+    };
+
+    self.pipeline.add(&sink).unwrap();
+    sink.sync_state_with_parent()
+        .with_context(|| format!("can't start sink for stream {:?}", caps))?;
+
+    let sinkpad = sink.static_pad("sink").unwrap();
+    pad.link(&sinkpad)
+        .with_context(|| format!("can't link sink for stream {:?}", caps))?;
+
+    Ok(())
+}
+\end{minted}
+    \caption{Dodawanie zdekodowanych strumieni do pipeline'u}
+    \label{lst:pipeline-3}
+\end{listing}
+
+
+\subsubsection{Interfejs użytkownika}
+
+W niniejszym rozdziale zaprezentowany zostanie interfejs użytkownika wykonany za pomocą frameworka
+GTK oraz biblioteki libadwaita.
+
+Po uruchomieniu aplikacji prezentowany jest ekran lądowania który wyświetla wiadomość powitalną oraz
+prosi o podanie nazwy użytkownika (rys. \ref{fig:screen_landing}).
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=.5\textwidth]{img/gui/screen_landing}
     \caption{Ekran lądowania}
+    \label{fig:screen_landing}
 \end{figure}
 
-\subsubsection{Główny ekran aplikacji}
+Po wprowadzeniu nazwy użytkownika aplikacja łączy się z serwerem, ogłasza dostępność użytkownika
+innym połączonym użytkownikom oraz wyświetla użytkownikowi listę innych połączonych użytkowników
+(rys. \ref{fig:screen_main}).
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=.5\textwidth]{img/gui/screen_main}
     \caption{Główny ekran aplikacji}
+    \label{fig:screen_main}
 \end{figure}
 
-\subsubsection{Dialog wysłania połączenia}
+Użytkownik może zadzwonić do drugiego użytkownika klikając na przycisk rozpoczęcia połączenia po
+prawej stronie nazwy innego użytkownika. Podczas oczekiwania na odpowiedź od odbiorcy, wyświetlane
+jest następujące okno dialogowe, gdzie nadawca może przerwać połączenie (rys.
+\ref{fig:screen_call_start}):
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=.5\textwidth]{img/gui/screen_call_start}
     \caption{Dialog wysłania połączenia}
+    \label{fig:screen_call_start}
 \end{figure}
 
-\subsubsection{Dialog otrzymania połączenia}
+Tymczasem odbiorcy prezentowane jest okno dialogowe informujące o przychodzącym połączeniu. Odbiorca
+może odebrać lub odrzucić połączenie (rys. \ref{fig:screen_call_recv}):
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=.4\textwidth]{img/gui/screen_call_recv}
     \caption{Dialog otrzymania połączenia}
+    \label{fig:screen_call_recv}
 \end{figure}
 
-\subsubsection{Dialog odrzucenia połączenia przez odbiorcę}
+Jeżeli odbiorca odrzuci połączenie, nadawcy wyświetla się okno dialogowe informujące o zdarzeniu
+(rys. \ref{fig:screen_recepient_reject}):
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=.4\textwidth]{img/gui/screen_recepient_reject}
     \caption{Dialog odrzucenia połączenia przez odbiorcę}
+    \label{fig:screen_recepient_reject}
 \end{figure}
 
-\subsubsection{Dialog porzucenia połączenia przez nadawcę}
+Jeżeli połączenie zostanie przerwane przez nadawcę zanim nadawca zdąży odebrać albo odrzucić
+połączenie, okno dialogowe informujące o zdarzeniu wyświetlane jest odbiorcy (rys. \ref{fig:screen_caller_hungup}):
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=.4\textwidth]{img/gui/screen_caller_hungup}
     \caption{Dialog porzucenia połączenia przez nadawcę}
+    \label{fig:screen_caller_hungup}
 \end{figure}
