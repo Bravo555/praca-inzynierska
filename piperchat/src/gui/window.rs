@@ -114,15 +114,7 @@ impl Window {
     }
 
     pub fn accept_call(&self) {
-        self.sender()
-            .send_blocking(GuiEvent::CallAccepted(VideoPreference::Enabled))
-            .unwrap();
-    }
-
-    pub fn accept_call_without_video(&self) {
-        self.sender()
-            .send_blocking(GuiEvent::CallAccepted(VideoPreference::Disabled))
-            .unwrap();
+        self.sender().send_blocking(GuiEvent::CallAccepted).unwrap();
     }
 
     pub fn reject_call(&self) {

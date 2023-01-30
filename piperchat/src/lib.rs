@@ -47,7 +47,7 @@ pub enum NetworkEvent {
 #[derive(Debug)]
 pub enum GuiEvent {
     CallStart(u32, String),
-    CallAccepted(VideoPreference),
+    CallAccepted,
     CallRejected,
     NameEntered(String),
 }
@@ -55,7 +55,7 @@ pub enum GuiEvent {
 #[derive(Debug)]
 pub enum NetworkCommand {
     CallStart(u32, String),
-    CallAccept(VideoPreference),
+    CallAccept,
     CallReject,
     CallHangup,
     Connect(String),
@@ -279,7 +279,7 @@ pub async fn run(
                         // Join the given session
                         Some(PcMessage::Call(CallMessage { peer: id }))
                     },
-                    NetworkCommand::CallAccept(video_preference) => {
+                    NetworkCommand::CallAccept => {
                         state = AppState::InCall(Call::new(gst_tx.clone(), CallSide::Callee, gst_exit_tx.clone())?);
                         Some(PcMessage::CallResponse(CallResponseMessage::Accept))
                     },
@@ -479,9 +479,9 @@ impl EventHandler {
                     .send_blocking(NetworkCommand::CallStart(id, name))
                     .unwrap();
             }
-            GuiEvent::CallAccepted(preference) => {
+            GuiEvent::CallAccepted => {
                 self.network_command_tx
-                    .send_blocking(NetworkCommand::CallAccept(preference))
+                    .send_blocking(NetworkCommand::CallAccept)
                     .unwrap();
             }
 
