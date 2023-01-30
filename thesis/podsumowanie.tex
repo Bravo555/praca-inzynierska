@@ -1,16 +1,15 @@
 \chapter{Podsumowanie}
 \label{chap:podsumowanie}
-Podsumowanie jest miejscem, w którym należy zamieścić syntetyczny opis tego, o czym jest dokument. W
-szczególności w pracach dyplomowych w podsumowaniu powinno znaleźć się jawnie podane stwierdzenie
-dotyczące stopnia realizacji celu. Czyli powinny pojawić się w niej akapity ze zdaniami typu:
-,,Podczas realizacji pracy udało się zrealizować wszystkie postawione cele''. Ponadto powinna
-pojawić się dyskusja na temat napotkanych przeszkód i sposobów ich pokonania, perspektyw dalszego
-rozwoju, możliwych zastosowań wyników pracy itp.
-
 \section{Realizacja celu pracy}
 
 Zadanie utworzenia komunikatora prezentującego reguły prowadzenia połączeń peer-to-peer zostały
-zrealizowane.
+zrealizowane. Wykonany komunikator realizuje postanowione wymagania funkcjonalne, jednak nie
+wykorzystuje kodeka AV1, ponieważ dostępne w GStreamer enkodery AV1 okazały się jeszcze
+niewystarczająco szybkie do kodowania wideo w czasie rzeczywistym. Modularna architektura frameworka
+GStreamer pozwoliła na bezproblemowe zastąpienie AV1 innym nowoczesnym kodekiem - VP9. W miarę
+rozwoju enkoderów programowych a także coraz większej dostępności enkoderów sprzętowych w
+nowoczesnych układach graficznych, użycie AV1 w komunikatorach wideo może jeszcze stać się
+praktyczne w niedalekiej przyszłości.
 
 \section{Wnioski}
 
@@ -28,6 +27,10 @@ będąc szybkim jak kod w języku niskopoziomowym (np. C) dzięki abstrakcjom o 
 Elementami który dodały najwięcej złożoności i potencjału na wprowadzenie błędów były GStreamer oraz
 GTK. Są one napisane w C, i ich bindingi w języku Rust są tylko obudową na ogrom kodu C, który
 replikuje i zastępuje wiele funkcjonalności wykonywanych lepiej przez Rusta.
+
+Ponadto, możliwe jest lepsze wykorzystanie systemu typów języka Rust do modelowania stanu aplikacji
+tak, by niepoprawne stany były nieosiągalne. Gdyby zaczynać projekt od nowa, autor na początku
+dążyłby do wykonania kompletnego modelu celem poprawnej separacji warstw.
 
 \section{Możliwe usprawnienia}
 

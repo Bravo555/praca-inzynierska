@@ -1,0 +1,47 @@
+\chapter{Analiza wymagań}
+
+\section{Wymagania projektowe}
+
+Końcowym celem projektu jest poznanie procesów kluczowych w internetowych transmisjach audio-wideo
+oraz wykonanie aplikacji okienkowej na systemy Linux pełniącej rolę komunikatora internetowego.
+Komunikator powinien pozwalać użytkownikom na odkrywanie innych użytkowników i prowadzenie z nimi
+połączeń audio-wideo. Połączenia audio-wideo pomiędzy użytkownikami będą odbywać się w trybie
+peer-to-peer, tj. transmisje wideo i audio w tych połączeniach trafiają na drugą stronę połączenia
+bezpośrednio, bez pośrednictwa serwera, który będzie służył tylko i wyłącznie do dwóch celów: by
+umożliwiać użytkownikom odkrywanie innych dostępnych użytkowników do których można wykonać
+połączenie, oraz jako mechanizm początkowej wymiany danych pomiędzy stronami połączenia celem
+sygnalizacji połączenia oraz późniejszego ustanowienia bezpośredniego kanału wymiany danych
+peer-to-peer.
+
+\section{Wymagania funkcjonalne}
+
+\begin{enumerate}
+	\item Użytkownik może wybrać imię pod którym widoczny będzie dla innych użytkowników
+	\item Użytkownik widzi listę aktualnie dostępnych użytkowników
+	\item Użytkownik X może zadzwonić do użytkownika Y
+	\item Użytkownik X w trakcie oczekiwania na odpowiedź od użytkownika Y, może zrezygnować z
+	      połączenia, rozłączyć się
+	\item Użytkownik Y, gdy dzwoni do niego użytkownik X, może odrzucić lub odebrać połączenie
+	\item Jeśli połączenie zostanie odebrane i poprawnie nawiązane, każdy z użytkowników powinien
+	      móc zaobserwować transmisję z kamery wideo oraz usłyszeć transmisję audio z mikrofonu
+	      drugiego użytkownika
+	\item W trakcie trwania połączenia, każdy z użytkowników może rozłączyć się, unilateralnie
+	      terminując połączenie.
+	\item (opcjonalne) Użytkownik może zmienić swoją nazwę pod którą jest widoczny bez rozłączania
+	      się z serwerem
+\end{enumerate}
+
+\section{Wymagania niefunkcjonalne}
+
+\begin{enumerate}
+	\item Do realizacji projektu zostanie wykorzystany język programowania Rust
+	\item Aplikacja wykorzystuje frameworki i biblioteki natywne dla systemów Linux
+	\item Aplikacja powinna działać nie tylko w sieci lokalnej, ale także w sieci Internet
+	\item Połączenia pomiędzy użytkownikami powinny odbywać się w trybie peer-to-peer celem
+	      minimalizacji opóźnień
+	\item Z powodu powyższego wymagania, połączenia są ograniczone do dwóch użytkowników, tj. nie ma
+	      możliwości tworzenia konferencji z wieloma użytkownikami.
+	\item (opcjonalne) Aplikacja wykorzystuje kodek AV1 do kompresji wideo
+	\item (opcjonalne) Aplikacja powinna wdzięcznie obsługiwać brak kamery wideo lub mikrofonu przez
+	      użytkownika
+\end{enumerate}

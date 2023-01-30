@@ -1,21 +1,20 @@
 - [x] dodac przynaleznosc do uczelni promotora (numerek w nawiasie)
 
 WYMAGANIA
-- [ ] podział na wymagania funkcjonalne i niefunkcjonalne
-- [ ] wymagania
+- [x] podział na wymagania funkcjonalne i niefunkcjonalne
+- [x] wymagania
 - [ ] wyłonienie tych funkcjonalności które dają się zrealizować (najlepiej w formie tabelarycznej)
 
 
 TREŚĆ
-- [ ] krotki wstep do aplikacji webrtc
-- [ ] przebudowac zeby byla jasna czesc teoretyczna i implementacyjna
+- [x] krotki wstep do aplikacji webrtc
+- [x] przebudowac zeby byla jasna czesc teoretyczna i implementacyjna
 - [ ] dodac informacje ze "tutaj jest skrocona instrukcja obslugi aplikacji"
-- [ ] KONCEPCJA REALIZACJI
+- [x] KONCEPCJA REALIZACJI
 
 FORMATOWANIE
-- [ ] zrzuty ekranu wysrodkowac
-- [ ] opisac fragmenty kodu + dodac komentarze
+- [x] zrzuty ekranu wysrodkowac
+- [x] opisac fragmenty kodu + dodac komentarze
 
 
-WYMAGANIA
-
+- [ ] NAJWAZNIEJSZE: AV1 napisac o enkoderach

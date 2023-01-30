@@ -12,24 +12,26 @@
 %%%Nam id nulla a adipiscing tortor, dictum ut, lobortis urna. Donec non dui. Cras tempus orci ipsum, molestie quis, lacinia varius nunc, rhoncus purus, consectetuer congue risus.
 %\mbox{}\vspace{2cm} % można przesunąć, w zależności od długości streszczenia
 \begin{abstract}
-    Pandemia COVID-19 oraz zdobywające coraz większą popularność zdalne formy zatrudnienia obrazują jak
-    ważna jest rola połączeń wideo we współczesnym społeczeństwie. W wielu przypadkach kontakt "twarzą w
-    twarz" jest preferowalny, a nawet niezbędny do realizacji pewnych zadań. W takich wypadkach
-    niezawodność i jakość transmisji wideo stają się bardzo ważnymi problemami.
+    W ostatnich latach członkowie konsorcjum AOM wprowadzają na rynek nowy standard kompresji wideo
+    - AV1. W niektórych zastosowaniach kodek AV1 jest w stanie osiągnąć taką samą jakość wizualną
+    jak używany od 2003 standard AVC, zajmując przy tym zaledwie połowę miejsca. Nowy standard ma
+    zatem duże znaczenie dla członków konsorcjum, których działalność opiera się w znacznej części
+    na strumieniowaniu dużej ilości wideo do wielu klientów, takich jak Google, Netflix, lub Amazon,
+    którzy grają pierwsze skrzypce w jego adopcji. Niestety, ponieważ implementacje koderów AV1
+    pozostają znacznie wolniejsze od już przyjętych kodeków, aplikacje strumieniujące wideo w czasie
+    rzeczywistym, takie jak komunikatory internetowe lub platformy wideokonferencyjne, nie miały
+    jeszcze okazji skorzystać z nowego kodeka aby usprawnić jakość transmitowanego wideo.
     
-    W ciągu ostatnich 20 lat poczynione zostały ogromne postępy w rozwoju infrastruktury
-    internetowej w Polsce. Liczba internautów wzrosła z 16 mln w roku 2011 do 29,7 mln w roku 2021.
-    Znacząco wzrosły szerokości pasm, pozwalające 
-    
-    Lorem ipsum dolor sit amet eleifend et, congue arcu. Morbi tellus sit amet, massa. Vivamus est id risus. Sed sit
-    amet, libero. Aenean ac ipsum. Mauris vel lectus.
-    
-    Nam id nulla a adipiscing tortor, dictum ut, lobortis urna. Donec non dui. Cras tempus orci ipsum, molestie quis,
-    lacinia varius nunc, rhoncus purus, consectetuer congue risus.
-    
-    
+    Tematem pracy jest zbadanie praktyczności wykorzystania nowoczesnego kodeka wideo AV1 w
+    komunikatorze wideo. Wykonano w tym celu prosty komunikator internetowy składający się z serwera
+    oraz aplikacji graficznej na systemy Linux wykonanej w języku programowania Rust z użyciem
+    frameworków GTK oraz GStreamer. Niestety dostępne w GStreamer implementacje kodeków nie były w
+    stanie osiągnąć prędkości kodowania pozwalającej na strumieniowanie wideo w czasie rzeczywistym.
+    Jednak w miarę rozwoju enkoderów programowych a także coraz większej dostępności enkoderów
+    sprzętowych w nowoczesnych układach graficznych, użycie AV1 w komunikatorach wideo może jeszcze
+    stać się praktyczne w niedalekiej przyszłości.
 \end{abstract}
-\mykeywords{raz, dwa, trzy, cztery}
+\mykeywords{AV1}
 
 % Dobrze byłoby skopiować słowa kluczowe do metadanych dokumentu pdf (w pliku Dyplom.tex)
 % Niestety, zaimplementowane makro nie robi tego z automatu, więc pozostaje kopiowanie ręczne.
@@ -37,14 +39,24 @@
 {
     \selectlanguage{english}
     \begin{abstract}
-        Streszczenie in Polish should fit on the half of the page (the other half should be covered by the abstract in
-        English).
+        In recent years the members of the AOM consortium have been rolling out the new video
+        compression standard - AV1. The new standard can maintain the same visual quality while
+        taking up as little as half of the space compared to AVC, an older standard used from 2003.
+        As such, fast adoption of the new standard was pursued by the members of the consortium,
+        whose business largely consists of providing video streaming services for many customers,
+        such as Google, Netflix, or Amazon. Unfortunately because recent AV1 production codecs
+        sometimes still struggle with encoding speed when compared to the older, more established
+        codecs, real-time applications like video-chat or videoconferencing applications were not
+        yet able to take advantage of the new standard to provide a better quality video streams for
+        its users.
         
-        Lorem ipsum dolor sit amet eleifend et, congue arcu. Morbi tellus sit amet, massa. Vivamus est id risus. Sed sit
-        amet, libero. Aenean ac ipsum. Mauris vel lectus.
-        
-        Nam id nulla a adipiscing tortor, dictum ut, lobortis urna. Donec non dui. Cras tempus orci ipsum, molestie
-        quis, lacinia varius nunc, rhoncus purus, consectetuer congue risus.
+        This paper aims to examine the feasibility of the recently developed AV1 standard when used
+        in a video-chat application. For this purpose, such application was developed using the Rust
+        programming language, consisting of a server and a GUI application for Linux systems
+        utilizing GTK and GStreamer frameworks. Unfortunately available software codecs were not
+        able to achieve a real-time encoding speed. As software codecs improve and hardware codecs
+        continue to appear in more products, the usage of AV1 in real-time applications may
+        nonetheless become feasible in a near future.
     \end{abstract}
-    \mykeywords{one, two, three, four}
+    \mykeywords{AV1}
 }

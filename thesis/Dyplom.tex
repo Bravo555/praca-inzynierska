@@ -56,6 +56,8 @@
 \usepackage{tgtermes}
 \renewcommand*\ttdefault{txtt}
 
+\usepackage{subcaption}
+\usepackage{caption}
 
 \usepackage[
 backend=biber,
@@ -79,11 +81,11 @@ style=ieee
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \usepackage{color}
 \usepackage{listings}
-\usepackage{minted}
+\usepackage[chapter]{minted}
 \setminted{fontsize=\footnotesize}
 \usepackage{xpatch}
 \makeatletter
-\xpatchcmd\l@lstlisting{1.5em}{0em}{}{}
+% \xpatchcmd\l@lstlisting{1.5em}{0em}{}{}
 \makeatother
 % Pakiet dostarcza otoczenia lstlisting. Jest ono wysoce konfigurowalne.
 % Konfigurować można indywidualnie każdy z listingów lub globalnie, w poleceniu \lstset{}.
@@ -338,6 +340,8 @@ Listing \thelstlisting: #1\hfill%\hfill%
 }%}
 \newlistof{lstlistoflistings}{lol}{\lstlistlistingname}
 
+\renewcommand\listoflistingscaption{Spis listingów}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Ustawienia odpowiedzialne za sposób łamania dokumentu
@@ -559,7 +563,7 @@ Listing \thelstlisting: #1\hfill%\hfill%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % INFO: Deklaracja głębokościu numeracji
 \setcounter{secnumdepth}{2}
-\setcounter{tocdepth}{2}
+\setcounter{tocdepth}{1}
 \setsecnumdepth{subsection}
 % INFO: Dodanie kropek po numerach sekcji
 \makeatletter
@@ -603,10 +607,10 @@ Listing \thelstlisting: #1\hfill%\hfill%
         \renewcommand{\listfigurename}{Spis rysunków}%
 }%}
 
-%\AtBeginDocument{%
-        \addto\captionspolish{%
-        \renewcommand{\listtablename}{Spis tabel}%
-}%}
+% %\AtBeginDocument{%
+%         \addto\captionspolish{%
+%         \renewcommand{\listtablename}{Spis tabel}%
+% }%}
 
 %\AtBeginDocument{%
         \addto\captionspolish{%
@@ -861,15 +865,15 @@ Specjalność: & {\bfseries \@specjalnosc}\\
 %%\addcontentsline{toc}{chapter}{Spis rysunków}
 \listoffigures*
 \clearpage
-\pdfbookmark[0]{Spis tabel}{spisTabel.1} %
+% \pdfbookmark[0]{Spis tabel}{spisTabel.1} %
 %%\phantomsection
 %%\addcontentsline{toc}{chapter}{Spis tabel}
-\listoftables*
+% \listoftables*
 \clearpage
 \pdfbookmark[0]{Spis listingów}{spisListingow.1} %
 %%\phantomsection
 %%\addcontentsline{toc}{chapter}{Spis listingów}
-\lstlistoflistings*
+\listoflistings
 \clearpage
 
 \include{skroty} %skróty można sobie pominąć
@@ -878,9 +882,10 @@ Specjalność: & {\bfseries \@specjalnosc}\\
 %\mainmatter
 \chapterstyle{default}
 
-\include{rozdzial01}
-\include{rozdzial02}
-\include{technologie.tex}
+\include{wstep}
+\include{analiza_wymagan}
+\include{zagadnienia_teoretyczne}
+\include{koncepcja_realizacji}
 \include{aplikacja_webowa}
 \include{implementacja}
 \include{podsumowanie}
@@ -895,7 +900,7 @@ Specjalność: & {\bfseries \@specjalnosc}\\
 % \addtocontents{toc}{\addvspace{5pt}} % ustawiamy odstęp przed literaturą w spisie treści
 % \bibliography{dokumentacja}
 \printbibliography
-% \appendix
+\appendix
 \include{dodatekA}
 \include{dodatekB}
 
